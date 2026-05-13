@@ -25,3 +25,17 @@ export const findCasesByClientId = async (clientId) => {
 export const findCaseById = async (caseId) => {
   return await Case.findById(caseId);
 };
+
+export const deleteCaseDocumentRepo = async (caseId, docId) => {
+  return await Case.findByIdAndUpdate(
+    caseId,
+    {
+      $pull: {
+        documents: {
+          _id: docId,
+        },
+      },
+    },
+    { new: true }
+  );
+};

@@ -108,12 +108,8 @@ export const getCaseById = async (caseId) => {
   return res.data;
 };
 
+export const deleteCaseDoc = async (caseId, docId) => {
+  const res = await api.delete(`/case/${caseId}/document/${docId}`);
 
-
-
-
-// // DELETE document
-// export const deleteCaseDoc = async (caseId, docId) => {
-//   const res = await api.delete(`/case/${caseId}/documents/${docId}`);
-//   return res.data;
-// };
+  return res.data;
+};

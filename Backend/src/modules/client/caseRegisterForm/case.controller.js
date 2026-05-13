@@ -1,4 +1,4 @@
-import { createCaseService, updateCaseDetailsService, uploadDocumentsService, requestLawyerService, getDraftCaseService,getClientCasesService ,getCaseByIdService} from "./case.service.js";
+import { createCaseService, updateCaseDetailsService, uploadDocumentsService, requestLawyerService, getDraftCaseService,getClientCasesService ,getCaseByIdService, deleteCaseDocumentService} from "./case.service.js";
 import { asyncHandler } from "../../../shared/middleware/asyncHandler.js";
 import { sendResponse } from "../../../shared/utils/response.js";
 
@@ -117,5 +117,22 @@ export const getCaseById = asyncHandler(async (req, res) => {
     true,
     "Case fetched successfully",
     data
+  );
+});
+
+export const deleteCaseDoc = asyncHandler(async (req, res) => {
+  const { caseId, docId } = req.params;
+
+  const updatedCase = await deleteCaseDocumentService(
+    caseId,
+    docId
+  );
+
+  return sendResponse(
+    res,
+    200,
+    true,
+    "Document deleted successfully",
+    updatedCase
   );
 });

@@ -13,7 +13,7 @@ import {
   getCaseById,
   updateCaseDetails,
   uploadCaseDocuments,
-  // deleteCaseDoc,
+  deleteCaseDoc,
 } from "../../service/AuthService";
 import toast from "react-hot-toast";
 
@@ -29,7 +29,9 @@ export default function CaseDetails() {
   const [formData, setFormData] = useState(null);
 
   const [documentName, setDocumentName] = useState("");
-const [documentType, setDocumentType] = useState("");
+  const [documentType, setDocumentType] = useState("");
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     if (caseId) {
       fetchCaseDetails();
@@ -53,74 +55,115 @@ const [documentType, setDocumentType] = useState("");
       setFormData(caseData);
     }
   }, [caseData]);
+  const handleSave = async () => {
+    try {
+      setSaving(true);
 
-const handleSave = async () => {
-  try {
-    const payload = {
-      personalData: formData.personalData,
-      caseDetails: formData.caseDetails,
-    };
+      const payload = {
+        personalData: formData.personalData,
+        caseDetails: formData.caseDetails,
+        shareWithLawyer: formData.shareWithLawyer,
+      };
 
-    const res = await updateCaseDetails(caseId, payload);
+      const res = await updateCaseDetails(caseId, payload);
 
-    setCaseData(res.data);
-toast.success("Case updated successfully");
-    setIsEditing(false);
+      setCaseData(res.data);
 
-  } catch (err) {
-    toast.error(err.response?.data?.message || "Something went wrong");
+      toast.success("Case updated successfully");
 
-    console.log(err);
-  }
-};
+      setIsEditing(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Something went wrong");
 
-const handleInputChange = (path, value) => {
-  setFormData((prev) => {
-
-    const updated = structuredClone(prev);
-
-    const keys = path.split(".");
-
-    let current = updated;
-
-    for (let i = 0; i < keys.length - 1; i++) {
-      current = current[keys[i]];
+      console.log(err);
+    } finally {
+      setSaving(false);
     }
+  };
 
-    current[keys[keys.length - 1]] = value;
+  const handleInputChange = (path, value) => {
+    setFormData((prev) => {
+      const updated = structuredClone(prev);
 
-    return updated;
-  });
-};
+      const keys = path.split(".");
 
- const handleFileUpload = async (e) => {
-  try {
-    const files = e.target.files;
+      let current = updated;
 
-    if (!files || files.length === 0) return;
+      for (let i = 0; i < keys.length - 1; i++) {
+        current = current[keys[i]];
+      }
 
-    const formData = new FormData();
+      current[keys[keys.length - 1]] = value;
 
-    // optional
-    formData.append("documentName", "Additional Document");
-    formData.append("documentType", "other");
+      return updated;
+    });
+  };
+  const handleFileUpload = async (e) => {
+    try {
+      const files = e.target.files;
 
-    for (let file of files) {
-      formData.append("files", file);
+      if (!files || files.length === 0) return;
+
+      const formData = new FormData();
+
+      formData.append("documentName", documentName);
+      formData.append("documentType", documentType);
+
+      for (let file of files) {
+        formData.append("files", file);
+      }
+
+      await uploadCaseDocuments(caseId, formData);
+
+      toast.success("Documents uploaded");
+
+      setDocumentName("");
+      setDocumentType("");
+
+      fetchCaseDetails();
+    } catch (err) {
+      console.log(err);
+
+      toast.error("Upload failed");
     }
-
-    await uploadCaseDocuments(caseId, formData);
-
-    fetchCaseDetails();
-
-  } catch (err) {
-    console.log(err);
-  }
-};
+  };
 
   const handleDelete = async (docId) => {
-    await deleteCaseDoc(caseId, docId);
-    fetchCaseDetails();
+    toast.custom((t) => (
+      <div className="bg-white shadow-lg rounded-xl p-4 border w-80">
+        <p className="font-semibold text-black mb-3">Delete this document?</p>
+
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="px-3 py-1 border rounded-lg"
+          >
+            Cancel
+          </button>
+
+          <button
+            onClick={async () => {
+              try {
+                await deleteCaseDoc(caseId, docId);
+
+                toast.dismiss(t.id);
+
+                toast.success("Document deleted");
+
+                fetchCaseDetails();
+              } catch (err) {
+                console.log(err);
+
+                toast.error(err.response?.data?.message || "Delete failed");
+              }
+            }}
+            className="px-3 py-1 bg-red-600 text-white rounded-lg"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ));
   };
 
   const getUrgencyColor = (level) => {
@@ -166,19 +209,53 @@ const handleInputChange = (path, value) => {
             </p>{" "}
           </div>
           <button
-            onClick={() => setIsEditing(!isEditing)}
+            onClick={() => {
+              if (!isEditing) {
+                toast.custom((t) => (
+                  <div className="bg-white shadow-lg rounded-xl p-4 border w-80">
+                    <p className="font-semibold text-black mb-3">
+                      Enable edit mode?
+                    </p>
+
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => toast.dismiss(t.id)}
+                        className="px-3 py-1 border rounded-lg"
+                      >
+                        Cancel
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setIsEditing(true);
+                          toast.dismiss(t.id);
+                          toast.success("Edit mode enabled");
+                        }}
+                        className="px-3 py-1 bg-black text-white rounded-lg"
+                      >
+                        Yes
+                      </button>
+                    </div>
+                  </div>
+                ));
+              } else {
+                setIsEditing(false);
+                toast("Edit cancelled");
+              }
+            }}
             className="px-4 py-2 bg-black text-white rounded-lg"
           >
             {isEditing ? "Cancel Edit" : "Edit Case"}
           </button>
 
           {isEditing && (
-           <button
-  disabled={loading}
-  className="px-4 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50"
->
-  {loading ? "Saving..." : "Save Changes"}
-</button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
           )}
 
           <button
@@ -300,20 +377,35 @@ const handleInputChange = (path, value) => {
               )}
             </div>
 
-         <input
-  type="date"
-  value={
-    formData.caseDetails?.incidentDate
-      ? formData.caseDetails.incidentDate.split("T")[0]
-      : ""
-  }
-  onChange={(e) =>
-    handleInputChange(
-      "caseDetails.incidentDate",
-      e.target.value
-    )
-  }
-/>
+            <div>
+              <strong>Incident Date:</strong>
+
+              {isEditing ? (
+                <input
+                  type="date"
+                  value={
+                    formData.caseDetails?.incidentDate
+                      ? formData.caseDetails.incidentDate.split("T")[0]
+                      : ""
+                  }
+                  onChange={(e) =>
+                    handleInputChange(
+                      "caseDetails.incidentDate",
+                      e.target.value,
+                    )
+                  }
+                  className="border p-2 rounded w-full mt-1"
+                />
+              ) : (
+                <p>
+                  {caseData.caseDetails?.incidentDate
+                    ? new Date(
+                        caseData.caseDetails.incidentDate,
+                      ).toLocaleDateString()
+                    : "N/A"}
+                </p>
+              )}
+            </div>
 
             <div>
               <strong>Description:</strong>
@@ -501,14 +593,79 @@ const handleInputChange = (path, value) => {
 
           {/* UPLOAD */}
           {isEditing && (
-            <input
-              type="file"
-              multiple
-              onChange={handleFileUpload}
-              className="mb-4"
-            />
+            <div className="space-y-3 mb-4">
+              <input
+                type="text"
+                placeholder="Document Name"
+                value={documentName}
+                onChange={(e) => setDocumentName(e.target.value)}
+                className="border p-2 rounded w-full"
+              />
+
+              <select
+                value={documentType}
+                onChange={(e) => setDocumentType(e.target.value)}
+                className="border p-2 rounded w-full"
+              >
+                <option value="">Select Type</option>
+                <option value="evidence">Evidence</option>
+                <option value="legal_notice">Legal Notice</option>
+                <option value="agreement">Agreement</option>
+                <option value="other">Other</option>
+              </select>
+
+              <input
+                type="file"
+                multiple
+                onChange={handleFileUpload}
+                className="mb-4"
+              />
+            </div>
           )}
 
+        <div className="border-2 border-black/10 bg-gray-50 rounded-xl p-5 mb-6 shadow-sm">
+  {/* Header */}
+  <div className="flex items-start justify-between">
+    <div>
+      <h3 className="font-semibold text-lg text-black">
+         Share Documents With Lawyer
+      </h3>
+
+      <p className="text-sm text-gray-600 mt-1">
+        Control whether assigned or requested lawyers can access case documents
+      </p>
+    </div>
+
+    {/* Toggle */}
+    <label className="relative inline-flex items-center cursor-pointer">
+      <input
+        type="checkbox"
+        className="sr-only peer"
+        checked={formData?.shareWithLawyer || false}
+        disabled={!isEditing}
+        onChange={(e) =>
+          handleInputChange("shareWithLawyer", e.target.checked)
+        }
+      />
+
+      {/* Track */}
+      <div
+        className={`w-11 h-6 rounded-full transition-all duration-200
+          peer-checked:bg-black
+          ${isEditing ? "bg-gray-300" : "bg-gray-200 opacity-50 cursor-not-allowed"}
+        `}
+      ></div>
+
+      {/* Thumb */}
+      <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"></div>
+    </label>
+  </div>
+
+  {/* Extra highlight info */}
+  <div className="mt-4 text-xs text-yellow-900 bg-yellow-100 border rounded-lg p-3">
+     When enabled, lawyers you request or assign will be able to view uploaded case documents.
+  </div>
+</div>
           {caseData.documents?.length > 0 ? (
             <div className="space-y-3">
               {caseData.documents.map((doc) => (

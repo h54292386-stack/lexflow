@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 export default function CasesPage() {
   const [cases, setCases] = useState([]);
   const navigate = useNavigate();
-
+const [selectedCase, setSelectedCase] = useState(null);
  useEffect(() => {
   fetchCases();
 }, []);
@@ -23,8 +23,57 @@ const fetchCases = async () => {
   }
 };
 
+const statusSteps = [
+  "draft",
+  "submitted",
+  "requested",
+  "assigned",
+  "in_progress",
+  "closed",
+];
   return (
+    
     <div className="min-h-screen bg-gray-100 p-8">
+      {selectedCase && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="bg-white w-[380px] rounded-xl p-6 shadow-xl">
+
+      <h2 className="text-xl font-bold mb-4">Case Progress</h2>
+
+      <div className="space-y-4">
+        {statusSteps.map((step, index) => {
+const currentIndex = statusSteps.indexOf(selectedCase?.status || "draft");
+          return (
+            <div key={step} className="flex items-center gap-3">
+              <div
+                className={`w-4 h-4 rounded-full ${
+                  index <= currentIndex ? "bg-green-600" : "bg-gray-300"
+                }`}
+              />
+
+              <span
+                className={`capitalize ${
+                  index <= currentIndex
+                    ? "text-black font-medium"
+                    : "text-gray-400"
+                }`}
+              >
+                {step.replace("_", " ")}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <button
+        onClick={() => setSelectedCase(null)}
+        className="mt-6 w-full bg-black text-white py-2 rounded-lg"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -103,9 +152,12 @@ const fetchCases = async () => {
                   View Details
                 </button>
 
-                <button className="flex-1 bg-black text-white py-2 rounded-lg hover:bg-gray-800">
-                  Track Status
-                </button>
+                <button
+  onClick={() => setSelectedCase(item)}
+  className="flex-1 bg-black text-white py-2 rounded-lg hover:bg-gray-800"
+>
+  Track Status
+</button>
               </div>
             </div>
           ))}

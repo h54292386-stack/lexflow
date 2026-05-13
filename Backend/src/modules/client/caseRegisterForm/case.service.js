@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { createCaseRepo, findCaseByIdAndClient, saveCase, update,findCasesByClientId,findCaseById } from "./case.repository.js";
+import { createCaseRepo, findCaseByIdAndClient, saveCase, update,findCasesByClientId,findCaseById,deleteCaseDocumentRepo } from "./case.repository.js";
 import Case from "./case.model.js";
 import AppError from "../../../shared/utils/AppError.js";
 
@@ -63,6 +63,9 @@ export const updateCaseDetailsService = async (caseId, clientId, data) => {
       ...data.caseDetails?.incidentLocation,
     },
   };
+
+  caseDoc.shareWithLawyer = data.shareWithLawyer;
+
   caseDoc.stepCompleted = Math.max(caseDoc.stepCompleted, 2);
 
   caseDoc.timeline = caseDoc.timeline || [];
@@ -70,17 +73,7 @@ export const updateCaseDetailsService = async (caseId, clientId, data) => {
   caseDoc.timeline.push({
     action: "case_updated",
   });
-
-
-
-  // caseDoc.caseDetails = {
-  //   ...caseDoc.caseDetails,
-  //   ...data,   // safer merge
-  // };
-
-  // caseDoc.stepCompleted = Math.max(caseDoc.stepCompleted, 2);
-  // caseDoc.timeline = caseDoc.timeline || [];
-  // caseDoc.timeline.push({ action: "case_updated" });
+  
   return saveCase(caseDoc);
 };
 
@@ -208,4 +201,21 @@ export const getCaseByIdService = async (
   }
 
   return caseData;
+};
+
+
+export const deleteCaseDocumentService = async (
+  caseId,
+  docId
+) => {
+  const updatedCase = await deleteCaseDocumentRepo(
+    caseId,
+    docId
+  );
+
+  if (!updatedCase) {
+    throw new Error("Case not found");
+  }
+
+  return updatedCase;
 };
