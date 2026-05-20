@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { createCaseRepo, findCaseByIdAndClient, saveCase, update,findCasesByClientId,findCaseById,deleteCaseDocumentRepo } from "./case.repository.js";
+import { createCaseRepo, findCaseByIdAndClient, saveCase, update, findCasesByClientId, findCaseById, deleteCaseDocumentRepo } from "./case.repository.js";
 import Case from "./case.model.js";
 import AppError from "../../../shared/utils/AppError.js";
 
@@ -44,27 +44,39 @@ export const updateCaseDetailsService = async (caseId, clientId, data) => {
     throw new Error("Invalid case details payload");
   }
 
+  if (data.personalData) {
     caseDoc.personalData = {
-    ...caseDoc.personalData,
-    ...data.personalData,
-  };
+      ...(caseDoc.personalData?.toObject?.() || {}),
+      ...data.personalData,
 
+      idProof: {
+        ...(caseDoc.personalData?.idProof || {}),
+        ...(data.personalData?.idProof || {}),
+      },
+    };
+  }
+
+  if (data.caseDetails) {
     caseDoc.caseDetails = {
-    ...caseDoc.caseDetails,
-    ...data.caseDetails,
+      ...(caseDoc.caseDetails?.toObject?.() || {}),
+      ...data.caseDetails,
 
-    opponent: {
-      ...caseDoc.caseDetails?.opponent,
-      ...data.caseDetails?.opponent,
-    },
+      opponent: {
+        ...(caseDoc.caseDetails?.opponent || {}),
+        ...(data.caseDetails?.opponent || {}),
+      },
 
-    incidentLocation: {
-      ...caseDoc.caseDetails?.incidentLocation,
-      ...data.caseDetails?.incidentLocation,
-    },
-  };
+      incidentLocation: {
+        ...(caseDoc.caseDetails?.incidentLocation || {}),
+        ...(data.caseDetails?.incidentLocation || {}),
+      },
+    };
+  }
 
-  caseDoc.shareWithLawyer = data.shareWithLawyer;
+  if (data.shareWithLawyer !== undefined) {
+    caseDoc.shareWithLawyer = data.shareWithLawyer;
+  }
+
 
   caseDoc.stepCompleted = Math.max(caseDoc.stepCompleted, 2);
 
@@ -72,8 +84,9 @@ export const updateCaseDetailsService = async (caseId, clientId, data) => {
 
   caseDoc.timeline.push({
     action: "case_updated",
+    date: new Date(),
   });
-  
+
   return saveCase(caseDoc);
 };
 

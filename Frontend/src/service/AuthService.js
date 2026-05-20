@@ -113,3 +113,22 @@ export const deleteCaseDoc = async (caseId, docId) => {
 
   return res.data;
 };
+
+export const createConversation = async (clientId,lawyerId) => {
+  
+  const res = await api.post("/chat/conversation",{clientId, lawyerId,});
+
+  return res.data;
+};  
+
+export const getMessages = async (conversationId) => {
+  const res = await api.get(`/chat/${conversationId}`);
+
+  return res.data;
+};
+
+export const getUserConversations = async (userId) => {
+    const res = await api.get(`/chat/conversations/${userId}`);
+
+    return res.data;
+  };

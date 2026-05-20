@@ -106,6 +106,7 @@ export const getClientCases = asyncHandler(async (req, res) => {
 });
 
 export const getCaseById = asyncHandler(async (req, res) => {
+  
   const data = await getCaseByIdService(
     req.params.caseId,
     req.user.id

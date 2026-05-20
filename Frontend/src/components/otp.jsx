@@ -40,7 +40,7 @@ export default function VerifyOTP() {
     if (otp.every((digit) => digit !== "") && !loading) {
       handleVerify();
     }
-  }, [otp, loading]);
+  }, [otp]);
 
   const handleChange = (value, index) => {
     if (!/^[0-9]?$/.test(value)) return;

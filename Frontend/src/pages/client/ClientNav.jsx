@@ -1,5 +1,5 @@
 import { MdBalance } from "react-icons/md";
-import { FaBell, FaUserCircle } from "react-icons/fa";
+import { FaBell, FaUserCircle, FaComments } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { logoutClient, getClientProfile } from "../../service/AuthService.js";
 import { useState, useEffect, useRef } from "react";
@@ -13,7 +13,6 @@ export default function ClientNavbar() {
   const dropdownRef = useRef();
   const navigate = useNavigate();
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -29,7 +28,7 @@ export default function ClientNavbar() {
     const fetchUser = async () => {
       try {
         const res = await getClientProfile();
-        setUser(res.user); // adjust if your response is different
+        setUser(res.user); 
       } catch (err) {
         console.error(err);
       }
@@ -38,20 +37,19 @@ export default function ClientNavbar() {
     fetchUser();
   }, []);
 
-const handleLogout = async () => {
-  try {
-    await logoutClient();
+  const handleLogout = async () => {
+    try {
+      await logoutClient();
 
-    logout();
+      logout();
 
-    toast.success("Logged out successfully");
+      toast.success("Logged out successfully");
 
-    navigate("/login");
-
-  } catch (error) {
-    toast.error("Logout failed");
-  }
-};
+      navigate("/login");
+    } catch (error) {
+      toast.error("Logout failed");
+    }
+  };
 
   return (
     <nav className="flex items-center justify-between px-10 py-4 bg-white shadow-sm">
@@ -65,14 +63,26 @@ const handleLogout = async () => {
           <Link to="/howitworking">Home</Link>
         </li>
         <li className="hover:text-black cursor-pointer">
-           <Link to="/cases">Cases</Link>
-           </li>
+          <Link to="/cases">Cases</Link>
+        </li>
         <li className="hover:text-black cursor-pointer">
           <Link to="/createCase">Register New Case</Link>
+        </li>
+        <li className="hover:text-black cursor-pointer">
+          <Link to="/lawyers">Lawyers</Link>
         </li>
       </ul>
 
       <div className="flex items-center gap-5">
+        <Link to="/chat">
+          <div className="relative">
+            <FaComments className="text-lg cursor-pointer hover:text-blue-600" />
+            <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1 rounded-full">
+              2
+            </span>
+          </div>
+        </Link>
+
         <div className="relative">
           <FaBell className="text-lg cursor-pointer" />
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full">
@@ -86,7 +96,6 @@ const handleLogout = async () => {
             onClick={() => setOpen(!open)}
           />
 
-          {/* Dropdown */}
           {open && (
             <div className="absolute right-0 mt-3 w-40 bg-white shadow-lg rounded-lg py-2 z-50">
               <span className="text-sm font-medium text-gray-700">

@@ -55,7 +55,7 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-      if (loading) return; // 🔥 VERY IMPORTANT
+      if (loading) return;
 
     if (!validate()) return;
 
@@ -81,6 +81,7 @@ function Register() {
       setLoading(false);
     }
   };
+
 
    const handleGoogleSuccess = async (credentialResponse) => {
     try {

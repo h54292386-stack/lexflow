@@ -1,8 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { connectSocket, disconnectSocket } from "../socket.js";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const [socket, setSocket] = useState(null);
  const [user, setUser] = useState(() => {
   try {
     const savedUser = localStorage.getItem("user");
@@ -34,23 +36,25 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = (userData, token) => {
-    localStorage.setItem("accessToken", token);
+const login = (userData, token) => {
+  localStorage.setItem("accessToken", token);
+  localStorage.setItem("user", JSON.stringify(userData));
 
-    localStorage.setItem("user", JSON.stringify(userData));
+  setUser(userData);
 
-    setUser(userData);
-  };
+  const s = connectSocket(token);
+  setSocket(s);
+};
 
-  const logout = () => {
-    localStorage.removeItem("accessToken");
+ const logout = () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("user");
+  localStorage.removeItem("caseDraft");
 
-    localStorage.removeItem("user");
-
-    localStorage.removeItem("caseDraft");
-
-    setUser(null);
-  };
+disconnectSocket();
+setSocket(null);
+setUser(null);
+};
 
   return (
     <AuthContext.Provider

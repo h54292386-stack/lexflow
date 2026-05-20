@@ -42,9 +42,6 @@ const caseSchema = new mongoose.Schema(
                     type: String,
                     trim: true
                 },
-                documentUrl: {
-                    type: String // Cloudinary URL
-                },
                 publicId: {
                     type: String // for delete/update
                 },

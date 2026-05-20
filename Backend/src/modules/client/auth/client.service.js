@@ -44,8 +44,27 @@ export const registerClient = async (data = {}) => {
 
   const existingClient = await findClientByEmail(email);
 
-  if (existingClient) {
-    throw new AppError("Client already exists", 409);
+   if (existingClient?.isVerified) {
+    throw new AppError("User already verified", 409);
+  }
+
+    if (existingClient && !existingClient.isVerified) {
+    const otp = generateOTP();
+    const hashedOTP = await bcrypt.hash(otp, 10);
+
+    existingClient.otp = hashedOTP;
+    existingClient.otpExpires = Date.now() + 5 * 60 * 1000;
+
+    await existingClient.save();
+    await sendOTP(email, otp);
+
+    return {
+  success: true,
+  message: "OTP resent to email",
+  data: {
+    email
+  }
+};
   }
 
   const otp = generateOTP();
@@ -62,10 +81,13 @@ export const registerClient = async (data = {}) => {
   });
 
   await sendOTP(email, otp);
-  return {
-    message: "OTP sent to email",
+ return {
+  success: true,
+  message: "OTP sent to email",
+  data: {
     email: newClient.email
-  };
+  }
+};
 };
 
 

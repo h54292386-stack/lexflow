@@ -166,20 +166,22 @@ export default function CaseRegistration() {
       setLoading(true);
 
       const payload = {
-        caseName: form.caseName,
-        caseType: form.caseType,
-        incidentDate: form.incidentDate,
-        description: form.description,
-        urgencyLevel: form.urgency,
-        opponent: {
-          name: form.opponentName,
-          relation: form.opponentRelation,
-          contact: form.opponentContact,
-        },
-        incidentLocation: {
-          city: form.city,
-          state: form.state,
-          country: form.country,
+        caseDetails: {
+          caseName: form.caseName,
+          caseType: form.caseType,
+          incidentDate: form.incidentDate,
+          description: form.description,
+          urgencyLevel: form.urgency,
+          opponent: {
+            name: form.opponentName,
+            relation: form.opponentRelation,
+            contact: form.opponentContact,
+          },
+          incidentLocation: {
+            city: form.city,
+            state: form.state,
+            country: form.country,
+          },
         },
       };
 
@@ -339,20 +341,22 @@ export default function CaseRegistration() {
         }
 
         await updateCaseDetails(id, {
-          caseName: form.caseName,
-          caseType: form.caseType,
-          incidentDate: form.incidentDate,
-          description: form.description,
-          urgencyLevel: form.urgency,
-          opponent: {
-            name: form.opponentName,
-            relation: form.opponentRelation,
-            contact: form.opponentContact,
-          },
-          incidentLocation: {
-            city: form.city,
-            state: form.state,
-            country: form.country,
+          caseDetails: {
+            caseName: form.caseName,
+            caseType: form.caseType,
+            incidentDate: form.incidentDate,
+            description: form.description,
+            urgencyLevel: form.urgency,
+            opponent: {
+              name: form.opponentName,
+              relation: form.opponentRelation,
+              contact: form.opponentContact,
+            },
+            incidentLocation: {
+              city: form.city,
+              state: form.state,
+              country: form.country,
+            },
           },
           isDraft: true,
         });

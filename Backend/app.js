@@ -11,6 +11,7 @@ import lawyerRoutes from "./src/modules/lawyer/auth/lawyer.routes.js"
 import adminRoutes from "./src/modules/admin/auth/admin.routes.js";
 import caseRoutes from "./src/modules/client/caseRegisterForm/case.routes.js";
 import lawyersRoutes from "./src/modules/client/selectLawyer/routes.js";
+import chatRoutes from "./src/modules/client/chat/chat.routes.js";
 const app = express();
 
 
@@ -41,6 +42,7 @@ app.use("/api/lawyer",lawyerRoutes);
 app.use("/api/admin",adminRoutes);
 app.use("/api/case",caseRoutes);
 app.use("/api/lawyers", lawyersRoutes);
+app.use("/api/chat", chatRoutes);
 app.use(errorMiddleware);
 
 
