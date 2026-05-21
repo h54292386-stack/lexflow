@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { verifyClientOTP, resendClientOTP } from "../service/AuthService.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function VerifyOTP() {
   const location = useLocation();
   const navigate = useNavigate();
-
+const { login } = useAuth();
   const email = location.state?.email;
 
   const [otp, setOtp] = useState(new Array(6).fill(""));
@@ -84,6 +85,10 @@ export default function VerifyOTP() {
         email,
         otp: finalOtp,
       });
+
+      localStorage.setItem("accessToken", res.accessToken);
+
+      localStorage.setItem("user", JSON.stringify(res.user));
 
       toast.success("Verified & Logged in");
 

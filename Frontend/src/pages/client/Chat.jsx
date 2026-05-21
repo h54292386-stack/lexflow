@@ -9,6 +9,10 @@ import { useParams } from "react-router-dom";
 import ChatSidebar from "../../components/ChatSideBar.jsx";
 import { getUserId } from "../../Utils/chatUtils.js";
 import { safeDecrypt } from "../../Utils/crypto.js";
+import chat1 from "../../assets/chat1..jpg";
+import EmojiPicker from "emoji-picker-react";
+import { Smile } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
 
 export default function Chat() {
   const rawUser = JSON.parse(localStorage.getItem("user"));
@@ -28,6 +32,8 @@ export default function Chat() {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [conversationsLoaded, setConversationsLoaded] = useState(false);
 
   const unreadKey = currentUser?.role === "client" ? "client" : "lawyer";
   const socketRef = useRef(null);
@@ -55,43 +61,77 @@ export default function Chat() {
     socketRef.current = socketInstance;
   }, [currentUser?._id]);
 
+  // useEffect(() => {
+  //   const init = async () => {
+  //     if (!lawyerId || !currentUser?._id) {
+  //       console.log("MISSING DATA:", { lawyerId, currentUser });
+  //       return;
+  //     }
+
+  //     try {
+  //       const res = await createConversation(currentUser._id, lawyerId);
+
+  //       const conv = res.data;
+
+  //       if (!conv?._id) {
+  //         console.log("Invalid conversation returned");
+  //         return;
+  //       }
+
+  //       setActiveConversation(conv);
+
+  //       socketRef.current?.emit("joinConversation", conv._id);
+  //       const msgsRes = await getMessages(conv._id);
+
+  //       setMessages(msgsRes.data || []);
+  //     } catch (err) {
+  //       console.log("INIT ERROR:", err);
+  //     }
+  //   };
+
+  //   init();
+  // }, [lawyerId, currentUser?._id]);
+
   useEffect(() => {
-    const init = async () => {
-      if (!lawyerId || !currentUser?._id) {
-        console.log("MISSING DATA:", { lawyerId, currentUser });
-        return;
-      }
+    if (!conversationsLoaded) return;
+
+    const initConversation = async () => {
+      if (!lawyerId || !currentUser?._id) return;
 
       try {
-        const res = await createConversation(currentUser._id, lawyerId);
+        // CHECK EXISTING CONVERSATION
+        const existingConversation = conversations.find((conv) =>
+          conv.participants.some((p) => getUserId(p) === String(lawyerId)),
+        );
 
-        const conv = res.data;
-
-        if (!conv?._id) {
-          console.log("Invalid conversation returned");
+        // IF EXISTS -> OPEN IT
+        if (existingConversation) {
+          openConversation(existingConversation);
           return;
         }
 
-        setActiveConversation(conv);
+        // OTHERWISE CREATE NEW CONVERSATION
+        const res = await createConversation(currentUser._id, lawyerId);
 
-        socketRef.current?.emit("joinConversation", conv._id);
-        const msgsRes = await getMessages(conv._id);
+        const newConversation = res.data;
 
-        setMessages(msgsRes.data || []);
+        if (!newConversation?._id) return;
+
+        // ADD TO SIDEBAR
+        setConversations((prev) => [newConversation, ...prev]);
+
+        // OPEN CHAT BOX
+        openConversation(newConversation);
       } catch (err) {
-        console.log("INIT ERROR:", err);
+        console.log("Conversation init error:", err);
       }
     };
 
-    init();
-  }, [lawyerId, currentUser?._id]);
+    initConversation();
+  }, [lawyerId, currentUser?._id, conversationsLoaded]);
 
   if (!currentUser?._id) {
     return <div>Invalid user</div>;
-  }
-
-  if (!lawyerId) {
-    return <div>Invalid lawyer</div>;
   }
 
   useEffect(() => {
@@ -108,6 +148,7 @@ export default function Chat() {
         );
 
         setConversations(uniqueConversations);
+        setConversationsLoaded(true);
       } catch (err) {
         console.log(err);
       }
@@ -118,41 +159,36 @@ export default function Chat() {
 
   useEffect(() => {
     const handler = (message) => {
-      setConversations((prev) =>
-        prev.map((conv) => {
-          if (conv._id !== message?.conversationId) return conv;
+    setConversations((prev) =>
+  prev.map((conv) => {
+    if (conv._id !== message?.conversationId) {
+      return conv;
+    }
 
-          if (activeConversation?._id === message?.conversationId) {
-            return conv;
-          }
+    return {
+      ...conv,
 
-          return {
-            ...conv,
-            unreadCount: {
+      latestMessage: message,
+
+      unreadCount:
+        activeConversation?._id === message?.conversationId
+          ? conv.unreadCount
+          : {
               ...conv.unreadCount,
               [unreadKey]: (conv.unreadCount?.[unreadKey] || 0) + 1,
             },
-          };
-        }),
-      );
+    };
+  }),
+);
 
       if (message?.conversationId !== activeConversation?._id) return;
 
       setMessages((prev) => {
-        const exists = prev.some((m) => {
-          const oldSender = m.sender?._id || m.sender;
+        const map = new Map(prev.map((m) => [String(m._id), m]));
 
-          const newSender = message.sender?._id || message.sender;
+        map.set(String(message._id), message);
 
-          return (
-            String(oldSender) === String(newSender) &&
-            m.text === message.text &&
-            Math.abs(new Date(m.createdAt) - new Date(message.createdAt)) < 5000
-          );
-        });
-        if (exists) return prev;
-
-        return [...prev, message];
+        return Array.from(map.values());
       });
 
       const senderId = message.sender?._id || message.sender;
@@ -171,37 +207,29 @@ export default function Chat() {
     return () => socketRef.current?.off("receiveMessage", handler);
   }, [activeConversation?._id, currentUser?._id]);
 
-useEffect(() => {
-  const handler = () => {
-    setMessages((prev) =>
-      prev.map((m) => {
-        const senderId =
-          m.sender?._id || m.sender;
+  useEffect(() => {
+    const handler = () => {
+      setMessages((prev) =>
+        prev.map((m) => {
+          const senderId = m.sender?._id || m.sender;
 
-        // ONLY MARK MY SENT MESSAGES
-        if (
-          String(senderId) ===
-          String(currentUser?._id)
-        ) {
-          return {
-            ...m,
-            seen: true,
-          };
-        }
+          // ONLY MARK MY SENT MESSAGES
+          if (String(senderId) === String(currentUser?._id)) {
+            return {
+              ...m,
+              seen: true,
+            };
+          }
 
-        return m;
-      }),
-    );
-  };
+          return m;
+        }),
+      );
+    };
 
-  socketRef.current?.on("messagesSeen", handler);
+    socketRef.current?.on("messagesSeen", handler);
 
-  return () =>
-    socketRef.current?.off(
-      "messagesSeen",
-      handler,
-    );
-}, [currentUser?._id]);
+    return () => socketRef.current?.off("messagesSeen", handler);
+  }, [currentUser?._id]);
 
   useEffect(() => {
     const handler = (users) => {
@@ -213,12 +241,15 @@ useEffect(() => {
   }, []);
 
   useEffect(() => {
-    socketRef.current?.on("typing", () => setTyping(true));
-    socketRef.current?.on("stopTyping", () => setTyping(false));
+    const handleTyping = () => setTyping(true);
+    const handleStopTyping = () => setTyping(false);
+
+    socketRef.current?.on("typing", handleTyping);
+    socketRef.current?.on("stopTyping", handleStopTyping);
 
     return () => {
-      socketRef.current?.off("typing");
-      socketRef.current?.off("stopTyping");
+      socketRef.current?.off("typing", handleTyping);
+      socketRef.current?.off("stopTyping", handleStopTyping);
     };
   }, []);
 
@@ -258,7 +289,11 @@ useEffect(() => {
 
       const msgs = Array.isArray(res.data) ? res.data : [];
 
-      setMessages(msgs);
+      const uniqueMsgs = Array.from(
+        new Map(msgs.map((m) => [String(m._id), m])).values(),
+      );
+
+      setMessages(uniqueMsgs);
 
       // RESET UNREAD COUNT IN SIDEBAR
       setConversations((prev) =>
@@ -318,16 +353,16 @@ useEffect(() => {
     }
 
     const payload = {
+      messageId: uuidv4(),
+
       conversationId: activeConversation._id,
 
       sender: currentUser._id,
 
-      // FIX: Capitalized enum values
       senderModel: currentUser.role === "client" ? "Client" : "Lawyer",
 
       receiver: receiverId,
 
-      // FIX: Correct lowercase condition
       receiverModel: currentUser.role === "client" ? "Lawyer" : "Client",
 
       text: cleanText,
@@ -360,159 +395,191 @@ useEffect(() => {
   );
   const isOnline = onlineUsers.some((id) => String(id) === activeUserId);
 
+  const handleEmojiClick = (emojiData) => {
+    setText((prev) => prev + emojiData.emoji);
+  };
+
   return (
     <div className="flex h-screen bg-gray-100">
-      {activeConversation ? (
-        <>
-          <ChatSidebar
-            conversations={conversations}
-            currentUser={currentUser}
-            onlineUsers={onlineUsers}
-            activeConversation={activeConversation}
-            openConversation={openConversation}
+      <ChatSidebar
+        conversations={conversations}
+        currentUser={currentUser}
+        onlineUsers={onlineUsers}
+        activeConversation={activeConversation}
+        openConversation={openConversation}
+      />
+
+      {!activeConversation ? (
+        <div className="flex-1 flex items-center justify-center bg-gray-100 relative overflow-hidden">
+          {/* BACKGROUND IMAGE */}
+          <img
+            src={chat1}
+            alt="background"
+            className="absolute inset-0 w-full h-full object-cover opacity-5"
           />
-          <div className="flex-1 flex flex-col">
-            <div className="p-4 border-b bg-white">
-              {activeParticipant ? (
-                <div className="flex items-center gap-3">
-                  {/* PROFILE IMAGE */}
-                  <img
-                    src={
-                      lawyerData?.profileImage ||
-                      "https://ui-avatars.com/api/?name=User"
-                    }
-                    alt={lawyerData?.name}
-                    className="w-12 h-12 rounded-full object-cover border"
-                  />
 
-                  {/* USER INFO */}
-                  <div className="flex flex-col">
-                    <h2 className="font-semibold text-lg text-gray-800">
-                      {lawyerData?.name || "Unknown User"}
-                    </h2>
+          {/* CONTENT */}
+          <div className="text-center relative z-10">
+            <h1 className="text-3xl font-semibold text-gray-700">
+              Welcome to LexFlow Chat
+            </h1>
 
-                    {/* ONLINE STATUS */}
-                    <span
-                      className={`text-sm ${
-                        isOnline ? "text-green-600" : "text-gray-500"
-                      }`}
-                    >
-                      {isOnline ? " Online" : "Offline"}
+            <p className="text-gray-500 mt-3 text-sm">
+              Select a conversation to start messaging
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col">
+          <div className="p-4 border-b bg-white">
+            {activeParticipant ? (
+              <div className="flex items-center gap-3">
+                {/* PROFILE IMAGE */}
+                <img
+                  src={
+                    lawyerData?.profileImage ||
+                    "https://ui-avatars.com/api/?name=User"
+                  }
+                  alt={lawyerData?.name}
+                  className="w-12 h-12 rounded-full object-cover border"
+                />
+
+                {/* USER INFO */}
+                <div className="flex flex-col">
+                  <h2 className="font-semibold text-lg text-gray-800">
+                    {lawyerData?.name || "Unknown User"}
+                  </h2>
+
+                  {/* ONLINE STATUS */}
+                  <span
+                    className={`text-sm ${
+                      isOnline ? "text-green-600" : "text-gray-500"
+                    }`}
+                  >
+                    {isOnline ? " Online" : "Offline"}
+                  </span>
+
+                  {/* LAST SEEN */}
+                  {!isOnline && activeParticipant?.userId?.lastSeen && (
+                    <span className="text-xs text-gray-400">
+                      Last seen:{" "}
+                      {new Date(lawyerData?.lastSeen).toLocaleString()}
                     </span>
-
-                    {/* LAST SEEN */}
-                    {!isOnline && activeParticipant?.userId?.lastSeen && (
-                      <span className="text-xs text-gray-400">
-                        Last seen:{" "}
-                        {new Date(lawyerData?.lastSeen).toLocaleString()}
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
-              ) : (
-                "Select conversation"
-              )}
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {isLoadingMessages ? (
-                <div className="flex justify-center items-center h-full">
-                  <div className="w-8 h-8 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
-                </div>
-              ) : (
-                <>
-                  {messages.map((msg, i) => {
-                    const isMe =
-                      String(normalizeSenderId(msg.sender)) ===
-                      String(currentUser._id);
+              </div>
+            ) : (
+              "Select conversation"
+            )}
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {isLoadingMessages ? (
+              <div className="flex justify-center items-center h-full">
+                <div className="w-8 h-8 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
+              </div>
+            ) : (
+              <>
+                {messages.map((msg, i) => {
+                  const isMe =
+                    String(normalizeSenderId(msg.sender)) ===
+                    String(currentUser._id);
 
-                    return (
-                      <div
-                        key={msg?._id || i}
-                        className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-                      >
-                        <div className="max-w-[75%] flex flex-col">
-                          {/* MESSAGE BUBBLE */}
-                          <div
-                            className={`px-4 py-2 shadow-sm text-sm break-words ${
-                              isMe
-                                ? "bg-black text-white rounded-2xl rounded-tr-none"
-                                : "bg-white text-gray-800 rounded-2xl rounded-tl-none border"
-                            }`}
-                          >
-                            {safeDecrypt(msg?.text)}
-                          </div>
+                  return (
+                    <div
+                      key={String(msg._id)}
+                      className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+                    >
+                      <div className="max-w-[75%] flex flex-col">
+                        {/* MESSAGE BUBBLE */}
+                        <div
+                          className={`px-4 py-2 shadow-sm text-sm break-words ${
+                            isMe
+                              ? "bg-black text-white rounded-2xl rounded-tr-none"
+                              : "bg-white text-gray-800 rounded-2xl rounded-tl-none border"
+                          }`}
+                        >
+                          {safeDecrypt(msg?.text)}
+                        </div>
 
-                          {/* TIME + STATUS */}
-                          <div
-                            className={`flex items-center gap-1 mt-1 text-xs text-gray-400 ${
-                              isMe ? "justify-end" : "justify-start"
-                            }`}
-                          >
-                            <span>
-                              {msg?.createdAt
-                                ? new Date(msg.createdAt).toLocaleTimeString(
-                                    [],
-                                    {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    },
-                                  )
-                                : ""}
+                        {/* TIME + STATUS */}
+                        <div
+                          className={`flex items-center gap-1 mt-1 text-xs text-gray-400 ${
+                            isMe ? "justify-end" : "justify-start"
+                          }`}
+                        >
+                          <span>
+                            {msg?.createdAt
+                              ? new Date(msg.createdAt).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : ""}
+                          </span>
+
+                          {/* MESSAGE STATUS */}
+                          {isMe && (
+                            <span
+                              className={`font-semibold ${
+                                msg?.seen ? "text-blue-500" : "text-gray-400"
+                              }`}
+                            >
+                              {msg?.seen ? "✓✓" : "✓"}
                             </span>
-
-                            {/* MESSAGE STATUS */}
-                            {isMe && (
-                              <span
-                                className={`font-semibold ${
-                                  msg?.seen ? "text-blue-500" : "text-gray-400"
-                                }`}
-                              >
-                                {msg?.seen ? "✓✓" : "✓"}
-                              </span>
-                            )}
-                          </div>
+                          )}
                         </div>
                       </div>
-                    );
-                  })}
-                </>
-              )}
-
-              {/* TYPING INDICATOR */}
-              {typing && (
-                <div className="flex justify-start">
-                  <div className="bg-white border px-4 py-3 rounded-2xl rounded-tl-none shadow-sm">
-                    <div className="flex gap-1 items-center">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
-                      <span
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.15s" }}
-                      ></span>
-                      <span
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.3s" }}
-                      ></span>
                     </div>
+                  );
+                })}
+              </>
+            )}
+
+            {/* TYPING INDICATOR */}
+            {typing && (
+              <div className="flex justify-start">
+                <div className="bg-white border px-4 py-3 rounded-2xl rounded-tl-none shadow-sm">
+                  <div className="flex gap-1 items-center">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
+                    <span
+                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.15s" }}
+                    ></span>
+                    <span
+                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.3s" }}
+                    ></span>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              <div ref={bottomRef} />
-            </div>
+            <div ref={bottomRef} />
+          </div>
 
-            <div className="p-4 border-t flex gap-2 bg-white">
+          <div className="p-4 border-t bg-white relative">
+            <div className="flex gap-2 items-center">
+              {/* EMOJI BUTTON */}
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker((prev) => !prev)}
+                className="p-2 rounded-full hover:bg-gray-100"
+              >
+                <Smile size={22} />
+              </button>
+
+              {/* INPUT */}
               <input
                 value={text}
                 onChange={(e) => {
                   setText(e.target.value);
 
                   if (activeConversation?._id) {
-                    socketRef.current.emit("typing", activeConversation._id);
+                    socketRef.current?.emit("typing", activeConversation._id);
                   }
                 }}
                 onBlur={() => {
                   if (activeConversation?._id) {
-                    socketRef.current.emit(
+                    socketRef.current?.emit(
                       "stopTyping",
                       activeConversation._id,
                     );
@@ -526,19 +593,24 @@ useEffect(() => {
                 placeholder="Type a message..."
                 className="flex-1 border border-gray-300 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-black"
               />
+
+              {/* SEND BUTTON */}
               <button
                 onClick={sendMessage}
                 disabled={!text.trim()}
                 className="bg-black text-white px-5 py-2 rounded-xl disabled:opacity-50"
               >
                 Send
-              </button>{" "}
+              </button>
             </div>
+
+            {/* EMOJI PICKER */}
+            {showEmojiPicker && (
+              <div className="absolute bottom-16 left-4 z-50">
+                <EmojiPicker onEmojiClick={handleEmojiClick} />
+              </div>
+            )}
           </div>
-        </>
-      ) : (
-        <div className="flex items-center justify-center w-full">
-          Loading chat...
         </div>
       )}
     </div>

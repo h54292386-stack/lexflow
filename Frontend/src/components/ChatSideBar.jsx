@@ -1,5 +1,6 @@
 import { FaSearch, FaUserCircle } from "react-icons/fa";
 import { getUserId } from "../Utils/chatUtils.js";
+import { safeDecrypt } from "../Utils/crypto.js";
 
 export default function ChatSidebar({
   conversations,
@@ -34,7 +35,6 @@ export default function ChatSidebar({
           });
 
           const otherUser = other?.userId || other;
-
 
           const otherId = String(otherUser?._id || otherUser?.id || otherUser);
           const online = onlineUsers.some(
@@ -75,25 +75,65 @@ export default function ChatSidebar({
               </div>
 
               <div className="flex-1 overflow-hidden">
+                {/* TOP ROW */}
                 <div className="flex items-center justify-between">
                   <h2 className="font-semibold text-gray-800 truncate">
                     {otherUser?.name || "Unknown"}
                   </h2>
 
-                  {unreadCount > 0 && (
-                    <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                      {unreadCount}
+                  {conv?.latestMessage?.createdAt && (
+                    <span className="text-xs text-gray-400 whitespace-nowrap">
+                      {new Date(
+                        conv.latestMessage.createdAt,
+                      ).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </span>
                   )}
                 </div>
 
-                <p
-                  className={`text-sm ${
-                    online ? "text-green-600" : "text-gray-500"
-                  }`}
-                >
-                  {online ? "Online" : "Offline"}
-                </p>
+                {/* BOTTOM ROW */}
+                <div className="flex items-center justify-between mt-1">
+                  <div
+                    className={`text-sm truncate flex items-center gap-1 ${
+                      unreadCount > 0
+                        ? "font-semibold text-black"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {/* SEEN TICKS */}
+                    {String(
+                      conv?.latestMessage?.sender?._id ||
+                        conv?.latestMessage?.sender,
+                    ) === String(currentUser?._id) && (
+                      <span
+                        className={
+                          conv?.latestMessage?.seen
+                            ? "text-blue-500"
+                            : "text-gray-400"
+                        }
+                      >
+                        {conv?.latestMessage?.seen ? "✓✓" : "✓"}
+                      </span>
+                    )}
+
+                    {/* LAST MESSAGE */}
+                    <span className="truncate">
+                      {conv?.typing
+                        ? "Typing..."
+                        : safeDecrypt(conv?.latestMessage?.text) ||
+                          "No messages yet"}
+                    </span>
+                  </div>
+
+                  {/* UNREAD COUNT */}
+                  {unreadCount > 0 && (
+                    <span className="bg-red-500 text-white text-xs min-w-[20px] h-5 px-1 flex items-center justify-center rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           );

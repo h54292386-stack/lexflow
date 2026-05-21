@@ -64,6 +64,7 @@ export const getUserConversationsRepo = async (userId) => {
   const conversations = await Conversation.find({
     "participants.userId": userId,
   })
+    .populate("participants.userId")
     .populate("latestMessage")
     .sort({ updatedAt: -1 });
 

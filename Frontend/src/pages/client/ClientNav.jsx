@@ -1,7 +1,11 @@
 import { MdBalance } from "react-icons/md";
 import { FaBell, FaUserCircle, FaComments } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
-import { logoutClient, getClientProfile } from "../../service/AuthService.js";
+import {
+  logoutClient,
+  getClientProfile,
+  getUserConversations,
+} from "../../service/AuthService.js";
 import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -9,6 +13,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 export default function ClientNavbar() {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { logout } = useAuth();
   const dropdownRef = useRef();
   const navigate = useNavigate();
@@ -28,13 +33,35 @@ export default function ClientNavbar() {
     const fetchUser = async () => {
       try {
         const res = await getClientProfile();
-        setUser(res.user); 
+        setUser(res.user);
       } catch (err) {
         console.error(err);
       }
     };
 
     fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const fetchUnreadMessages = async () => {
+      try {
+        const res = await getUserConversations();
+
+        const conversations = res.conversations || [];
+
+        let totalUnread = 0;
+
+        conversations.forEach((conv) => {
+          totalUnread += conv.unreadCount || 0;
+        });
+
+        setUnreadCount(totalUnread);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchUnreadMessages();
   }, []);
 
   const handleLogout = async () => {
@@ -77,9 +104,12 @@ export default function ClientNavbar() {
         <Link to="/chat">
           <div className="relative">
             <FaComments className="text-lg cursor-pointer hover:text-blue-600" />
-            <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1 rounded-full">
-              2
-            </span>
+
+            {unreadCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1 rounded-full">
+                {unreadCount}
+              </span>
+            )}
           </div>
         </Link>
 

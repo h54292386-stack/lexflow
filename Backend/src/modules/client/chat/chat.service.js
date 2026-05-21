@@ -40,13 +40,15 @@ export const createOrGetConversationService =
     let conversation =
       await Conversation.findOne({
         conversationKey,
-      });
+      })
+        .populate("participants.userId")
+        .populate("latestMessage");
 
     if (conversation) {
       return conversation;
     }
 
-    conversation =
+    const newConversation =
       await createConversationRepo({
         conversationKey,
 
@@ -62,6 +64,12 @@ export const createOrGetConversationService =
           },
         ],
       });
+
+    conversation = await Conversation.findById(
+      newConversation._id
+    )
+      .populate("participants.userId")
+      .populate("latestMessage");
 
     return conversation;
   };

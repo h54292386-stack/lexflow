@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
-import { saveMessageService,} from "./src/modules/client/chat/chat.service.js";
+import { saveMessageService, } from "./src/modules/client/chat/chat.service.js";
 import Conversation from "./src/modules/client/chat/conversation.model.js";
 import Message from "./src/modules/client/chat/chat.model.js";
 import { encryptMessage } from "./src/shared/utils/crypto.js";
@@ -36,7 +36,7 @@ io.use((socket, next) => {
 
   try {
 
-        token = token.replace("Bearer ", "");
+    token = token.replace("Bearer ", "");
 
     const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
 
@@ -84,13 +84,13 @@ io.use((socket, next) => {
 io.on("connection", (socket) => {
 
   console.log("User Connected:", socket.id);
-const userId = socket.user?.userId;
+  const userId = socket.user?.userId;
 
-if (userId) {
-  onlineUsers.set(userId, socket.id);
+  if (userId) {
+    onlineUsers.set(userId, socket.id);
 
-  io.emit("onlineUsers", Array.from(onlineUsers.keys()));
-}
+    io.emit("onlineUsers", Array.from(onlineUsers.keys()));
+  }
 
   socket.on("joinConversation", (conversationId) => {
     if (!conversationId) return;
@@ -106,29 +106,38 @@ if (userId) {
     console.log(`Joined room: ${conversationId}`);
   });
 
- 
+
 
   socket.on("sendMessage", async (data) => {
 
     try {
-          console.log("MSG_SECRET:", process.env.MSG_SECRET);
-
 
       if (
+        !data?.messageId ||
         !data?.conversationId ||
         !data?.sender ||
         !data?.text?.trim()
       ) {
-              console.log("VALIDATION FAILED");
+        console.log("VALIDATION FAILED");
 
         return;
       }
 
-          console.log("MESSAGE RECEIVED:", data);
-    console.log("BEFORE SAVE");
+      console.log("MESSAGE RECEIVED:", data);
+      console.log("BEFORE SAVE");
 
+       const existing = await Message.findOne({
+      messageId: data.messageId,
+    });
+
+if (existing) {
+  console.log("DUPLICATE MESSAGE BLOCKED:", data.messageId);
+  return;
+}
       const savedMessage =
         await saveMessageService({
+            messageId: data.messageId,   
+
           conversationId: data.conversationId,
 
           sender: data.sender,
@@ -139,9 +148,9 @@ if (userId) {
 
           text: encryptMessage(data.text),
         });
-            console.log("AFTER SAVE");
+      console.log("AFTER SAVE");
 
-            console.log("MESSAGE SAVED:", savedMessage);
+      console.log("MESSAGE SAVED:", savedMessage);
 
 
       await Conversation.findByIdAndUpdate(
@@ -155,13 +164,13 @@ if (userId) {
 
       if (!conversation) return;
 
-     const receiver = conversation.participants.find((p) => {
-  const participantId =
-    p.userId?._id?.toString() ||
-    p.userId?.toString();
+      const receiver = conversation.participants.find((p) => {
+        const participantId =
+          p.userId?._id?.toString() ||
+          p.userId?.toString();
 
-  return participantId !== data.sender.toString();
-});
+        return participantId !== data.sender.toString();
+      });
 
       if (!receiver) return;
 
@@ -178,15 +187,15 @@ if (userId) {
       }
 
       const populatedMessage =
-  await Message.findById(savedMessage._id)
-    .populate({
-      path: "sender",
-      model: data.senderModel,
-    })
-    .populate({
-      path: "receiver",
-      model: data.receiverModel,
-    });
+        await Message.findById(savedMessage._id)
+          .populate({
+            path: "sender",
+            model: data.senderModel,
+          })
+          .populate({
+            path: "receiver",
+            model: data.receiverModel,
+          });
 
       io.to(data.conversationId).emit(
         "receiveMessage",
@@ -259,7 +268,7 @@ if (userId) {
   });
 
   socket.on("disconnect", () => {
-const userId = socket.user?.userId;
+    const userId = socket.user?.userId;
 
     if (userId) {
       const storedSocketId = onlineUsers.get(userId);
@@ -300,5 +309,4 @@ const startServer = async () => {
 };
 
 startServer();
-
 

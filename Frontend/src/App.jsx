@@ -55,7 +55,7 @@ function App() {
         <Route path="/cases" element={<CasesPage />} />
 
         <Route path="/case/:caseId" element={<CaseDetails />} />
-        <Route path="/chat/:lawyerId" element={<Chat />} />
+        <Route path="/chat/:lawyerId?" element={<Chat />} />
 
         <Route path="/lawyer/home" element={<LawyerHome />} />
 
