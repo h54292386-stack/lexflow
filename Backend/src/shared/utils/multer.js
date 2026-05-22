@@ -5,9 +5,45 @@ import cloudinary from "./cloudinary.js";
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: "case_documents",
-    allowed_formats: ["jpg", "png", "pdf"]
+    folder: "legal_platform",
+    resource_type: "auto",
+    allowed_formats: [
+      "jpg",
+      "jpeg",
+      "png",
+      "pdf",
+      "mp4",
+      "mov",
+      "avi",
+      "mkv"
+    ]
   }
 });
 
-export const upload = multer({ storage });
+const fileFilter = (req, file, cb) => {
+ const allowedMimeTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/jpg",
+    "application/pdf",
+    "video/mp4",
+    "video/quicktime",
+    "video/x-msvideo",
+    "video/x-matroska"
+  ];
+
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only images, PDFs, and videos are allowed"), false);
+  }
+};
+
+export const upload = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 50 * 1024 * 1024 
+  }
+});
+

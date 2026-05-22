@@ -4,32 +4,32 @@ import bcrypt from "bcryptjs";
 const addressSchema = new mongoose.Schema({
     houseFlatNo: {
         type: String,
-        required: true,
         trim: true
     },
 
     street: {
         type: String,
-        required: true,
         trim: true
     },
 
     city: {
         type: String,
-        required: true,
         trim: true
     },
 
-    country: {
+    state: {
         type: String,
-        required: true,
         trim: true
     },
 
     pinCode: {
         type: String,
-        required: true,
         match: [/^[0-9]{6}$/, "Invalid PIN code"]
+    },
+
+    country: {
+        type: String,
+        trim: true
     }
 
 });
@@ -90,7 +90,7 @@ const clientSchema = new mongoose.Schema(
 
         profileImage: {
             type: String,
-            default: "https://default-profile.png"
+            default: "https://i.pinimg.com/736x/f5/47/d8/f547d800625af9056d62efe8969aeea0.jpg"
 
         },
 
@@ -170,7 +170,12 @@ const clientSchema = new mongoose.Schema(
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Document"
             }
-        ]
+        ],
+
+        profileCompleted: {
+            type: Boolean,
+            default: false
+        }
     },
     {
         timestamps: true
@@ -182,18 +187,25 @@ clientSchema.methods.toJSON = function () {
 
     obj.id = obj._id;
     delete obj._id;
+    delete obj.__v;
+
 
     delete obj.password;
     delete obj.refreshToken;
     delete obj.otp;
 
+    delete obj.otpAttempts;
+    delete obj.otpRequestCount;
+    delete obj.otpLastSentAt;
+    delete obj.otpBlockedUntil;
+
     return obj;
 };
 
 clientSchema.pre("save", async function () {
-  if (!this.isModified("password")) return;
-  
-  this.password = await bcrypt.hash(this.password, 10);
+    if (!this.isModified("password")) return;
+
+    this.password = await bcrypt.hash(this.password, 10);
 });
 
 const Client = mongoose.model("Client", clientSchema);

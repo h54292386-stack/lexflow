@@ -23,6 +23,10 @@ import LawyerDetails from "./pages/client/LawyerDetails.jsx";
 import CasesPage from "./pages/client/Cases.jsx";
 import CaseDetails from "./pages/client/CaseDetails.jsx";
 import Chat from "./pages/client/Chat.jsx";
+import Profile from "./pages/client/Profile.jsx";
+import CompleteProfile from "./pages/client/CompleteProfile.jsx";
+import Welcome from "./pages/client/welcome.jsx";
+import ChangePassword from "./pages/client/ChangePassword.jsx";
 
 function App() {
   return (
@@ -44,6 +48,8 @@ function App() {
         <Route path="/verify-otp" element={<VerifyOTP />} />
 
         <Route path="/home" element={<Home />} />
+        
+        <Route path="/welcome" element={<Welcome />} />
 
         <Route path="/howitworking" element={<HowItWorks />} />
 
@@ -52,10 +58,18 @@ function App() {
         <Route path="/lawyers" element={<LawyerList />} />
 
         <Route path="/lawyerDetails/:id" element={<LawyerDetails />} />
+
         <Route path="/cases" element={<CasesPage />} />
 
         <Route path="/case/:caseId" element={<CaseDetails />} />
+
         <Route path="/chat/:lawyerId?" element={<Chat />} />
+
+        <Route path="/profile" element={<Profile />} />
+
+        <Route path="/complete-profile" element={<CompleteProfile />} />
+        
+        <Route path="/change-password" element={<ChangePassword />} />
 
         <Route path="/lawyer/home" element={<LawyerHome />} />
 

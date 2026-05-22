@@ -44,8 +44,11 @@ export default function ClientNavbar() {
 
   useEffect(() => {
     const fetchUnreadMessages = async () => {
+      // Wait until user loads
+      if (!user?._id) return;
+
       try {
-        const res = await getUserConversations();
+        const res = await getUserConversations(user._id);
 
         const conversations = res.conversations || [];
 
@@ -62,7 +65,7 @@ export default function ClientNavbar() {
     };
 
     fetchUnreadMessages();
-  }, []);
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -100,11 +103,10 @@ export default function ClientNavbar() {
         </li>
       </ul>
 
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-7 mr-6">
         <Link to="/chat">
           <div className="relative">
-            <FaComments className="text-lg cursor-pointer hover:text-blue-600" />
-
+            <FaComments className="text-[20px] cursor-pointer hover:text-blue-600 transition" />
             {unreadCount > 0 && (
               <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1 rounded-full">
                 {unreadCount}
@@ -114,23 +116,46 @@ export default function ClientNavbar() {
         </Link>
 
         <div className="relative">
-          <FaBell className="text-lg cursor-pointer" />
+          <FaBell className="text-[19px] cursor-pointer hover:text-black transition" />{" "}
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full">
             3
           </span>
         </div>
 
         <div className="relative" ref={dropdownRef}>
-          <FaUserCircle
-            className="text-2xl cursor-pointer"
-            onClick={() => setOpen(!open)}
-          />
+          <div onClick={() => setOpen(!open)} className="cursor-pointer">
+            {user?.profileImage ? (
+              <img
+                src={user.profileImage}
+                alt="profile"
+                className="w-9 h-9 rounded-full object-cover border-2 border-gray-800"
+              />
+            ) : (
+              <FaUserCircle className="text-3xl" />
+            )}
+          </div>
 
           {open && (
-            <div className="absolute right-0 mt-3 w-40 bg-white shadow-lg rounded-lg py-2 z-50">
-              <span className="text-sm font-medium text-gray-700">
-                {user?.name || "User"}
-              </span>
+            <div className="absolute right-0 mt-3 w-52 bg-white shadow-xl rounded-xl py-2 z-50 border">
+              <div className="px-4 py-3 border-b">
+                <p className="font-semibold text-sm">{user?.name || "User"}</p>
+
+                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+              </div>
+
+              <Link
+                to="/profile"
+                className="block px-4 py-2 text-sm hover:bg-gray-100"
+              >
+                My Profile
+              </Link>
+              <Link
+                to="/change-password"
+                className="block px-4 py-2 text-sm hover:bg-gray-100"
+              >
+                Change Password
+              </Link>
+
               <button
                 onClick={handleLogout}
                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-500"

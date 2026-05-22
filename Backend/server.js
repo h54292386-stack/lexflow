@@ -49,47 +49,32 @@ io.use((socket, next) => {
     next(new Error("Unauthorized - Invalid token"));
   }
 });
-// io.use((socket, next) => {
-
-//     console.log("AUTH DATA:", socket.handshake.auth); // 👈 PUT IT HERE (first line inside)
-
-//   console.log(socket.handshake.auth);
-
-//   const token = socket.handshake.auth.token;
-
-//   if (!token) {
-//     return next(
-//       new Error("Unauthorized")
-//     );
-//   }
-
-//   try {
-
-//     const decoded = jwt.verify( 
-//         token,
-//         process.env.JWT_ACCESS_SECRET);
-
-//     socket.user = decoded;
-
-//     next();
-
-//   } catch (error) {
-
-//     next(
-//       new Error("Unauthorized")
-//     );
-//   }
-// });
 
 io.on("connection", (socket) => {
 
   console.log("User Connected:", socket.id);
   const userId = socket.user?.userId;
 
-  if (userId) {
-    onlineUsers.set(userId, socket.id);
+  // if (userId) {
+  //   onlineUsers.set(userId, socket.id);
 
-    io.emit("onlineUsers", Array.from(onlineUsers.keys()));
+  //   io.emit("onlineUsers", Array.from(onlineUsers.keys()));
+  // }
+
+  if (userId) {
+
+    if (!onlineUsers.has(userId)) {
+      onlineUsers.set(userId, new Set());
+    }
+
+    onlineUsers.get(userId).add(socket.id);
+
+    io.emit(
+      "onlineUsers",
+      Array.from(onlineUsers.keys())
+    );
+
+    console.log("ONLINE USERS:", onlineUsers);
   }
 
   socket.on("joinConversation", (conversationId) => {
@@ -126,17 +111,17 @@ io.on("connection", (socket) => {
       console.log("MESSAGE RECEIVED:", data);
       console.log("BEFORE SAVE");
 
-       const existing = await Message.findOne({
-      messageId: data.messageId,
-    });
+      const existing = await Message.findOne({
+        messageId: data.messageId,
+      });
 
-if (existing) {
-  console.log("DUPLICATE MESSAGE BLOCKED:", data.messageId);
-  return;
-}
+      if (existing) {
+        console.log("DUPLICATE MESSAGE BLOCKED:", data.messageId);
+        return;
+      }
       const savedMessage =
         await saveMessageService({
-            messageId: data.messageId,   
+          messageId: data.messageId,
 
           conversationId: data.conversationId,
 
@@ -267,17 +252,119 @@ if (existing) {
     );
   });
 
+  /* =========================
+   CALL EVENTS
+  ========================= */
+
+  // CALL USER
+  socket.on(
+    "call-user",
+    ({ to, from, callType }) => {
+
+      console.log(
+        "CALL USER:",
+        from,
+        "→",
+        to
+      );
+
+      const receiverSockets =
+        onlineUsers.get(to);
+
+      if (!receiverSockets) {
+        console.log("USER OFFLINE");
+        return;
+      }
+
+      receiverSockets.forEach((socketId) => {
+
+        io.to(socketId).emit(
+          "incoming-call",
+          {
+            from,
+            callType,
+          }
+        );
+      });
+    }
+  );
+
+  // REJECT CALL
+  socket.on(
+    "reject-call",
+    ({ to }) => {
+
+      const callerSockets =
+        onlineUsers.get(to);
+
+      if (!callerSockets) return;
+
+      callerSockets.forEach((socketId) => {
+
+        io.to(socketId).emit(
+          "call-rejected"
+        );
+      });
+    }
+  );
+
+  // END CALL
+  socket.on(
+    "end-call",
+    ({ to }) => {
+
+      const userSockets =
+        onlineUsers.get(to);
+
+      if (!userSockets) return;
+
+      userSockets.forEach((socketId) => {
+
+        io.to(socketId).emit(
+          "call-ended"
+        );
+      });
+    }
+  );
+
+
+
+
+
+
   socket.on("disconnect", () => {
     const userId = socket.user?.userId;
 
-    if (userId) {
-      const storedSocketId = onlineUsers.get(userId);
+    // if (userId) {
+    //   const storedSocketId = onlineUsers.get(userId);
 
-      if (storedSocketId === socket.id) {
-        onlineUsers.delete(userId);
+    //   if (storedSocketId === socket.id) {
+    //     onlineUsers.delete(userId);
+    //   }
+
+    //   io.emit("onlineUsers", Array.from(onlineUsers.keys()));
+    // }
+
+    if (userId) {
+
+      const userSockets =
+        onlineUsers.get(userId);
+
+      if (userSockets) {
+
+        userSockets.delete(socket.id);
+
+        if (userSockets.size === 0) {
+          onlineUsers.delete(userId);
+        }
       }
 
-      io.emit("onlineUsers", Array.from(onlineUsers.keys()));
+      io.emit(
+        "onlineUsers",
+        Array.from(onlineUsers.keys())
+      );
+
+      console.log("ONLINE USERS:", onlineUsers);
     }
 
     console.log("User Disconnected:", socket.id);

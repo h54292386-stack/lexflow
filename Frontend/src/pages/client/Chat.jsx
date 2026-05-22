@@ -13,6 +13,7 @@ import chat1 from "../../assets/chat1..jpg";
 import EmojiPicker from "emoji-picker-react";
 import { Smile } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
+import {  FaPhoneAlt, FaVideo } from "react-icons/fa";
 
 export default function Chat() {
   const rawUser = JSON.parse(localStorage.getItem("user"));
@@ -34,6 +35,8 @@ export default function Chat() {
   const [activeConversation, setActiveConversation] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [conversationsLoaded, setConversationsLoaded] = useState(false);
+
+  const [incomingCall, setIncomingCall] = useState(null);
 
   const unreadKey = currentUser?.role === "client" ? "client" : "lawyer";
   const socketRef = useRef(null);
@@ -60,37 +63,6 @@ export default function Chat() {
 
     socketRef.current = socketInstance;
   }, [currentUser?._id]);
-
-  // useEffect(() => {
-  //   const init = async () => {
-  //     if (!lawyerId || !currentUser?._id) {
-  //       console.log("MISSING DATA:", { lawyerId, currentUser });
-  //       return;
-  //     }
-
-  //     try {
-  //       const res = await createConversation(currentUser._id, lawyerId);
-
-  //       const conv = res.data;
-
-  //       if (!conv?._id) {
-  //         console.log("Invalid conversation returned");
-  //         return;
-  //       }
-
-  //       setActiveConversation(conv);
-
-  //       socketRef.current?.emit("joinConversation", conv._id);
-  //       const msgsRes = await getMessages(conv._id);
-
-  //       setMessages(msgsRes.data || []);
-  //     } catch (err) {
-  //       console.log("INIT ERROR:", err);
-  //     }
-  //   };
-
-  //   init();
-  // }, [lawyerId, currentUser?._id]);
 
   useEffect(() => {
     if (!conversationsLoaded) return;
@@ -159,27 +131,27 @@ export default function Chat() {
 
   useEffect(() => {
     const handler = (message) => {
-    setConversations((prev) =>
-  prev.map((conv) => {
-    if (conv._id !== message?.conversationId) {
-      return conv;
-    }
+      setConversations((prev) =>
+        prev.map((conv) => {
+          if (conv._id !== message?.conversationId) {
+            return conv;
+          }
 
-    return {
-      ...conv,
+          return {
+            ...conv,
 
-      latestMessage: message,
+            latestMessage: message,
 
-      unreadCount:
-        activeConversation?._id === message?.conversationId
-          ? conv.unreadCount
-          : {
-              ...conv.unreadCount,
-              [unreadKey]: (conv.unreadCount?.[unreadKey] || 0) + 1,
-            },
-    };
-  }),
-);
+            unreadCount:
+              activeConversation?._id === message?.conversationId
+                ? conv.unreadCount
+                : {
+                    ...conv.unreadCount,
+                    [unreadKey]: (conv.unreadCount?.[unreadKey] || 0) + 1,
+                  },
+          };
+        }),
+      );
 
       if (message?.conversationId !== activeConversation?._id) return;
 
@@ -323,6 +295,24 @@ export default function Chat() {
     });
   };
 
+  useEffect(() => {
+    const socket = getSocket();
+
+    if (!socket) return;
+
+    const handleIncomingCall = (data) => {
+      console.log("INCOMING CALL:", data);
+
+      setIncomingCall(data);
+    };
+
+    socket.on("incoming-call", handleIncomingCall);
+
+    return () => {
+      socket.off("incoming-call", handleIncomingCall);
+    };
+  }, []);
+
   const sendMessage = () => {
     const cleanText = text.trim();
 
@@ -399,6 +389,51 @@ export default function Chat() {
     setText((prev) => prev + emojiData.emoji);
   };
 
+  const callReceiver = activeConversation?.participants?.find(
+    (p) => getUserId(p) !== String(currentUser._id),
+  );
+
+  const receiverId = getUserId(callReceiver);
+
+  const handleCall = (callType) => {
+    if (!activeConversation) return;
+
+    if (!receiverId) {
+      console.log("NO RECEIVER");
+      return;
+    }
+
+    const socket = getSocket();
+
+if (!socket?.connected) {
+  console.log("Socket not connected");
+  return;
+}
+    socket.emit("call-user", {
+      to: receiverId,
+      from: currentUser._id,
+      callType,
+    });
+
+    console.log("CALL STARTED:", callType);
+  };
+
+  const rejectCall = () => {
+    const socket = getSocket();
+
+    socket.emit("reject-call", {
+      to: incomingCall.from,
+    });
+
+    setIncomingCall(null);
+  };
+
+  const acceptCall = () => {
+    console.log("CALL ACCEPTED");
+
+    setIncomingCall(null);
+  };
+
   return (
     <div className="flex h-screen bg-gray-100">
       <ChatSidebar
@@ -431,10 +466,10 @@ export default function Chat() {
         </div>
       ) : (
         <div className="flex-1 flex flex-col">
-          <div className="p-4 border-b bg-white">
+          <div className="p-4 border-b bg-white flex items-center justify-between">
+            {/* LEFT SIDE */}
             {activeParticipant ? (
               <div className="flex items-center gap-3">
-                {/* PROFILE IMAGE */}
                 <img
                   src={
                     lawyerData?.profileImage ||
@@ -444,33 +479,41 @@ export default function Chat() {
                   className="w-12 h-12 rounded-full object-cover border"
                 />
 
-                {/* USER INFO */}
                 <div className="flex flex-col">
                   <h2 className="font-semibold text-lg text-gray-800">
                     {lawyerData?.name || "Unknown User"}
                   </h2>
 
-                  {/* ONLINE STATUS */}
                   <span
                     className={`text-sm ${
                       isOnline ? "text-green-600" : "text-gray-500"
                     }`}
                   >
-                    {isOnline ? " Online" : "Offline"}
+                    {isOnline ? "Online" : "Offline"}
                   </span>
-
-                  {/* LAST SEEN */}
-                  {!isOnline && activeParticipant?.userId?.lastSeen && (
-                    <span className="text-xs text-gray-400">
-                      Last seen:{" "}
-                      {new Date(lawyerData?.lastSeen).toLocaleString()}
-                    </span>
-                  )}
                 </div>
               </div>
             ) : (
               "Select conversation"
             )}
+
+            {/* RIGHT SIDE */}
+            <div className="flex gap-4">
+              
+
+              <button
+                onClick={() => handleCall("video")}
+                className=" text-lg"
+              >
+                <FaVideo />
+              </button>
+              <button
+                onClick={() => handleCall("audio")}
+                className=" text-lg"
+              >
+                < FaPhoneAlt />
+              </button>
+            </div>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {isLoadingMessages ? (
@@ -610,6 +653,34 @@ export default function Chat() {
                 <EmojiPicker onEmojiClick={handleEmojiClick} />
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {incomingCall && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg">
+            <h2 className="text-lg font-semibold">
+              Incoming {incomingCall.callType} call
+            </h2>
+
+            <p className="mt-2">User is calling...</p>
+
+            <div className="flex gap-4 mt-4">
+              <button
+                onClick={acceptCall}
+                className="bg-green-500 text-white px-4 py-2 rounded"
+              >
+                Accept
+              </button>
+
+              <button
+                onClick={rejectCall}
+                className="bg-red-500 text-white px-4 py-2 rounded"
+              >
+                Reject
+              </button>
+            </div>
           </div>
         </div>
       )}

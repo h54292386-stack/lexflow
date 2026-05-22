@@ -7,7 +7,7 @@ export const registerClient = async (data) => {
 
 export const loginClient = async (data) => {
   const res = await api.post("/client/login", data);
-  return res.data; 
+  return res.data;
 };
 
 export const logoutClient = async () => {
@@ -17,7 +17,7 @@ export const logoutClient = async () => {
 
 export const googleLoginClient = async (token) => {
   const res = await api.post("/client/google", { token });
-  return res.data; 
+  return res.data;
 };
 
 export const registerLawyer = async (data) => {
@@ -27,7 +27,7 @@ export const registerLawyer = async (data) => {
 
 export const loginLawyer = async (data) => {
   const res = await api.post("/lawyer/login", data);
-  return res.data; 
+  return res.data;
 };
 
 export const loginAdmin = async (data) => {
@@ -86,10 +86,6 @@ export const requestLawyer = async (caseId, lawyerId) => {
   return res.data;
 };
 
-export const getClientProfile = async () => {
-  const res = await api.get("/client/profile");
-  return res.data;
-};
 
 export const getDraftCase = async () => {
   const res = await api.get("/case/draft");
@@ -114,12 +110,12 @@ export const deleteCaseDoc = async (caseId, docId) => {
   return res.data;
 };
 
-export const createConversation = async (clientId,lawyerId) => {
-  
-  const res = await api.post("/chat/conversation",{clientId, lawyerId,});
+export const createConversation = async (clientId, lawyerId) => {
+
+  const res = await api.post("/chat/conversation", { clientId, lawyerId, });
 
   return res.data;
-};  
+};
 
 export const getMessages = async (conversationId) => {
   const res = await api.get(`/chat/${conversationId}`);
@@ -128,7 +124,42 @@ export const getMessages = async (conversationId) => {
 };
 
 export const getUserConversations = async (userId) => {
-    const res = await api.get(`/chat/conversations/${userId}`);
+  const res = await api.get(`/chat/conversations/${userId}`);
 
-    return res.data;
-  };
+  return res.data;
+};
+
+export const getClientProfile = async () => {
+  const res = await api.get("/client/details/profile");
+
+  return res.data;
+};
+
+export const updateClientProfile = async (data) => {
+  const res = await api.put("/client/details/profile", data);
+
+  return res.data;
+};
+
+export const changePassword = async (data) => {
+  const res = await api.put(
+    "/client/details/change-password",
+    data
+  );
+
+  return res.data;
+};
+
+export const uploadProfileImage = async (formData) => {
+  const res = await api.put(
+    "/client/details/profile/image",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+
+  return res.data;
+};

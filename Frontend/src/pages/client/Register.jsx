@@ -94,7 +94,12 @@ function Register() {
 
       toast.success("Google login successful ");
 
-      navigate("/home");
+      if (!res.user.profileCompleted) {
+        navigate("/complete-profile");
+      } else {
+        navigate("/home");
+      }
+
     } catch (err) {
       toast.error("Google login failed");
     }

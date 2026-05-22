@@ -12,6 +12,7 @@ import adminRoutes from "./src/modules/admin/auth/admin.routes.js";
 import caseRoutes from "./src/modules/client/caseRegisterForm/case.routes.js";
 import lawyersRoutes from "./src/modules/client/selectLawyer/routes.js";
 import chatRoutes from "./src/modules/client/chat/chat.routes.js";
+import profileRoutes from "./src/modules/client/profile/profile.routes.js";
 const app = express();
 
 
@@ -38,11 +39,12 @@ app.get("/", (req, res) => {
 
 
 app.use("/api/client", clientRoutes);
-app.use("/api/lawyer",lawyerRoutes);
-app.use("/api/admin",adminRoutes);
 app.use("/api/case",caseRoutes);
 app.use("/api/lawyers", lawyersRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/client/details",profileRoutes)
+app.use("/api/lawyer",lawyerRoutes);
+app.use("/api/admin",adminRoutes);
 app.use(errorMiddleware);
 
 

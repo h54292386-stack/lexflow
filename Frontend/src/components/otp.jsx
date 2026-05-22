@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 export default function VerifyOTP() {
   const location = useLocation();
   const navigate = useNavigate();
-const { login } = useAuth();
+  const { login } = useAuth();
   const email = location.state?.email;
 
   const [otp, setOtp] = useState(new Array(6).fill(""));
@@ -86,13 +86,20 @@ const { login } = useAuth();
         otp: finalOtp,
       });
 
-      localStorage.setItem("accessToken", res.accessToken);
-
-      localStorage.setItem("user", JSON.stringify(res.user));
+      login(res.user, res.accessToken);
 
       toast.success("Verified & Logged in");
 
-      navigate("/home");
+      if (!res.user.profileCompleted) {
+        navigate("/welcome",{ 
+          replace: true
+        });
+      } else {
+        navigate("/home", {
+          replace: true,
+        });
+      }
+
     } catch (error) {
       const msg = error.response?.data?.message || "Verification failed";
       toast.error(msg);
