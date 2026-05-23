@@ -192,6 +192,7 @@ clientSchema.methods.toJSON = function () {
 
     delete obj.password;
     delete obj.refreshToken;
+    delete obj.googleId;
     delete obj.otp;
 
     delete obj.otpAttempts;

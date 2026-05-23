@@ -8,11 +8,14 @@ import { globalLimiter } from "./src/shared/middleware/rateLimiter.js";
 
 import clientRoutes from "./src/modules/client/auth/client.routes.js";
 import lawyerRoutes from "./src/modules/lawyer/auth/lawyer.routes.js"
+import lawyerprofileRoutes from "./src/modules/lawyer/profile/profile.routes.js";
 import adminRoutes from "./src/modules/admin/auth/admin.routes.js";
 import caseRoutes from "./src/modules/client/caseRegisterForm/case.routes.js";
 import lawyersRoutes from "./src/modules/client/selectLawyer/routes.js";
 import chatRoutes from "./src/modules/client/chat/chat.routes.js";
-import profileRoutes from "./src/modules/client/profile/profile.routes.js";
+import clientprofileRoutes from "./src/modules/client/profile/profile.routes.js";
+
+
 const app = express();
 
 
@@ -42,8 +45,11 @@ app.use("/api/client", clientRoutes);
 app.use("/api/case",caseRoutes);
 app.use("/api/lawyers", lawyersRoutes);
 app.use("/api/chat", chatRoutes);
-app.use("/api/client/details",profileRoutes)
+app.use("/api/client/details",clientprofileRoutes)
+
 app.use("/api/lawyer",lawyerRoutes);
+app.use("/api/lawyer/details", lawyerprofileRoutes);
+
 app.use("/api/admin",adminRoutes);
 app.use(errorMiddleware);
 

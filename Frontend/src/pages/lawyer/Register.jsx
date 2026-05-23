@@ -53,25 +53,31 @@ const LawyerRegister = () => {
     return true;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!validate()) return;
+  if (!validate()) return;
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const res = await registerLawyer(form);
+    const res = await registerLawyer(form);
 
-      toast.success(res.message || "Lawyer registered successfully ");
+    toast.success(res.message || "OTP sent successfully");
 
-      navigate("/lawyer/login");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Registration failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+    navigate("/verify-otp", {
+      state: {
+        email: form.email,
+        role: "lawyer",
+      },
+    });
+
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Registration failed");
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="min-h-screen flex justify-center items-center bg-gray-100">
       <div className="flex w-[750px] bg-white rounded-2xl shadow-lg overflow-hidden">

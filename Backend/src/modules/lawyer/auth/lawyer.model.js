@@ -19,7 +19,7 @@ const addressSchema = new mongoose.Schema({
         trim: true
     },
 
-    country: {
+    state: {
         type: String,
         required: true,
         trim: true
@@ -28,6 +28,12 @@ const addressSchema = new mongoose.Schema({
     pinCode: {
         type: String,
         required: true
+    },
+
+    country: {
+        type: String,
+        required: true,
+        trim: true
     },
 
 });
@@ -246,6 +252,10 @@ const lawyerSchema = new mongoose.Schema(
             enum: ["pending", "submitted", "approved", "rejected"],
             default: "pending"
         },
+        profileCompleted: {
+            type: Boolean,
+            default: false
+        },
 
         documents: {
             type: documentsSchema,
@@ -255,8 +265,24 @@ const lawyerSchema = new mongoose.Schema(
         phone: {
             type: String,
             trim: true,
-            match: [/^[0-9]{10}$/, "Invalid phone number"]
+            match: [/^(\+91[\-\s]?)?[6-9]\d{9}$/, "Invalid Indian phone number"]
         },
+
+        alternatePhone: {
+            type: String,
+            trim: true,
+            match: [/^(\+91[\-\s]?)?[6-9]\d{9}$/, "Invalid Indian phone number"]
+        },
+
+        gender: {
+            type: String,
+            enum: ["male", "female", "other"]
+        },
+
+        dateOfBirth: {
+            type: Date
+        },
+
 
         address: addressSchema,
 
@@ -298,12 +324,17 @@ lawyerSchema.methods.toJSON = function () {
 
     obj.id = obj._id;
     delete obj._id;
+    delete obj.__v;
 
     delete obj.password;
     delete obj.refreshToken;
     delete obj.googleId;
+    delete obj.otp;
 
-    delete obj.__v;
+    delete obj.otpAttempts;
+    delete obj.otpRequestCount;
+    delete obj.otpLastSentAt;
+    delete obj.otpBlockedUntil;
 
     return obj;
 };

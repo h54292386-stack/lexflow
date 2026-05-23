@@ -3,16 +3,18 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import {
-  updateClientProfile,
-  uploadProfileImage,
+  updateLawyerProfile,
+  uploadLawyerProfileImage,
 } from "../../service/AuthService.js";
 
-export default function CompleteProfile() {
+export default function CompleteLawyerProfile() {
   const navigate = useNavigate();
 
   const fileRef = useRef();
+
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+
   const [image, setImage] = useState("");
 
   const [form, setForm] = useState({
@@ -58,7 +60,7 @@ export default function CompleteProfile() {
 
       data.append("image", file);
 
-      const res = await uploadProfileImage(data);
+      const res = await uploadLawyerProfileImage(data);
 
       setImage(res.user.profileImage);
 
@@ -74,19 +76,19 @@ export default function CompleteProfile() {
     try {
       setLoading(true);
 
-            const payload = {
-  ...form,
-  profileImage: image,
-};
+      const payload = {
+        ...form,
+        profileImage: image,
+      };
 
-      await updateClientProfile(payload);
+      await updateLawyerProfile(payload);
 
-      toast.success("Profile completed");
+      toast.success("Lawyer profile completed");
 
       setRedirecting(true);
 
       setTimeout(() => {
-        navigate("/home", {
+        navigate("/lawyer/home", {
           replace: true,
         });
       }, 1500);
@@ -104,11 +106,12 @@ export default function CompleteProfile() {
           <div className="w-14 h-14 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
 
           <p className="text-white mt-4 text-lg font-medium">
-            Setting up your account...
+            Setting up your lawyer account...
           </p>
         </div>
       )}
-      <div className="bg-white shadow-xl rounded-2xl w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 overflow-hidden">
+
+      <div className="bg-white shadow-2xl rounded-2xl w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 overflow-hidden">
         {/* LEFT */}
         <div className="bg-black text-white p-8 flex flex-col items-center justify-center">
           <img
@@ -136,33 +139,38 @@ export default function CompleteProfile() {
             Upload Photo
           </button>
 
-          <h2 className="text-2xl font-bold mt-8">Complete Your Profile</h2>
+          <h2 className="text-2xl font-bold mt-8 text-center">
+            Complete Lawyer Profile
+          </h2>
 
           <p className="text-sm text-gray-300 text-center mt-2">
-            Finish setting up your account
+            Finish setting up your professional profile
           </p>
         </div>
 
         {/* RIGHT */}
-        <div className="md:col-span-2 p-8">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="text"
-              name="phone"
-              placeholder="Phone Number"
-              value={form.phone}
-              onChange={handleChange}
-              className="w-full border p-3 rounded-lg"
-            />
+        <div className="md:col-span-2 p-8 overflow-y-auto max-h-screen">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* BASIC */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <input
+                type="text"
+                name="phone"
+                placeholder="Phone Number"
+                value={form.phone}
+                onChange={handleChange}
+                className="border p-3 rounded-lg"
+              />
 
-            <input
-              type="text"
-              name="alternatePhone"
-              placeholder="Alternate Phone"
-              value={form.alternatePhone}
-              onChange={handleChange}
-              className="w-full border p-3 rounded-lg"
-            />
+              <input
+                type="text"
+                name="alternatePhone"
+                placeholder="Alternate Phone"
+                value={form.alternatePhone}
+                onChange={handleChange}
+                className="border p-3 rounded-lg"
+              />
+            </div>
 
             <select
               name="gender"
@@ -188,66 +196,70 @@ export default function CompleteProfile() {
             />
 
             {/* ADDRESS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                name="houseFlatNo"
-                placeholder="House / Flat No"
-                value={form.address.houseFlatNo}
-                onChange={handleChange}
-                className="border p-3 rounded-lg"
-              />
+            <div>
+              <h3 className="font-semibold text-lg mb-3">Home Address</h3>
 
-              <input
-                type="text"
-                name="street"
-                placeholder="Street"
-                value={form.address.street}
-                onChange={handleChange}
-                className="border p-3 rounded-lg"
-              />
+              <div className="grid md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  name="houseFlatNo"
+                  placeholder="House / Flat No"
+                  value={form.address.houseFlatNo}
+                  onChange={handleChange}
+                  className="border p-3 rounded-lg"
+                />
 
-              <input
-                type="text"
-                name="city"
-                placeholder="City"
-                value={form.address.city}
-                onChange={handleChange}
-                className="border p-3 rounded-lg"
-              />
+                <input
+                  type="text"
+                  name="street"
+                  placeholder="Street"
+                  value={form.address.street}
+                  onChange={handleChange}
+                  className="border p-3 rounded-lg"
+                />
 
-              <input
-                type="text"
-                name="state"
-                placeholder="State"
-                value={form.address.state}
-                onChange={handleChange}
-                className="border p-3 rounded-lg"
-              />
+                <input
+                  type="text"
+                  name="city"
+                  placeholder="City"
+                  value={form.address.city}
+                  onChange={handleChange}
+                  className="border p-3 rounded-lg"
+                />
 
-              <input
-                type="text"
-                name="pinCode"
-                placeholder="PIN Code"
-                value={form.address.pinCode}
-                onChange={handleChange}
-                className="border p-3 rounded-lg"
-              />
+                <input
+                  type="text"
+                  name="state"
+                  placeholder="State"
+                  value={form.address.state}
+                  onChange={handleChange}
+                  className="border p-3 rounded-lg"
+                />
 
-              <input
-                type="text"
-                name="country"
-                placeholder="Country"
-                value={form.address.country}
-                onChange={handleChange}
-                className="border p-3 rounded-lg"
-              />
+                <input
+                  type="text"
+                  name="pinCode"
+                  placeholder="PIN Code"
+                  value={form.address.pinCode}
+                  onChange={handleChange}
+                  className="border p-3 rounded-lg"
+                />
+
+                <input
+                  type="text"
+                  name="country"
+                  placeholder="Country"
+                  value={form.address.country}
+                  onChange={handleChange}
+                  className="border p-3 rounded-lg"
+                />
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading || redirecting}
-              className="w-full bg-black text-white py-3 rounded-lg"
+              className="w-full bg-black text-white py-3 rounded-lg font-semibold"
             >
               {loading || redirecting
                 ? "Please wait..."

@@ -15,4 +15,3 @@ export const findLawyerForAuth = (email) => {
 export const findLawyerById = (id) => {
   return Lawyer.findById(id);
 };
-

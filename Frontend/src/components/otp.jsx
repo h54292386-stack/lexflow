@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { verifyClientOTP, resendClientOTP } from "../service/AuthService.js";
+import {
+  verifyClientOTP,
+  resendClientOTP,
+  verifyLawyerOTP,
+  resendLawyerOTP,
+} from "../service/AuthService.js";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function VerifyOTP() {
@@ -9,6 +14,7 @@ export default function VerifyOTP() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const email = location.state?.email;
+  const role = location.state?.role;
 
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const inputsRef = useRef([]);
@@ -19,9 +25,13 @@ export default function VerifyOTP() {
   useEffect(() => {
     if (!email) {
       toast.error("Email missing. Please register again.");
-      navigate("/register");
+      if (role === "lawyer") {
+        navigate("/lawyer/register");
+      } else {
+        navigate("/register");
+      }
     }
-  }, [email, navigate]);
+  }, [email, role, navigate]);
 
   useEffect(() => {
     inputsRef.current[0]?.focus();
@@ -81,25 +91,44 @@ export default function VerifyOTP() {
     try {
       setLoading(true);
 
-      const res = await verifyClientOTP({
+      const payload = {
         email,
         otp: finalOtp,
-      });
+      };
+
+      const res =
+        role === "lawyer"
+          ? await verifyLawyerOTP(payload)
+          : await verifyClientOTP(payload);
 
       login(res.user, res.accessToken);
 
+      localStorage.setItem("role", res.user.role);
+
       toast.success("Verified & Logged in");
+      if (role === "lawyer") {
+        if (!res.user.profileCompleted) {
+          navigate("/lawyer/welcome", {
+            replace: true,
+          });
+        } else {
+          navigate("/lawyer/home", {
+            replace: true,
+          });
+        }
+
+        return;
+      }
 
       if (!res.user.profileCompleted) {
-        navigate("/welcome",{ 
-          replace: true
+        navigate("/welcome", {
+          replace: true,
         });
       } else {
         navigate("/home", {
           replace: true,
         });
       }
-
     } catch (error) {
       const msg = error.response?.data?.message || "Verification failed";
       toast.error(msg);
@@ -116,7 +145,12 @@ export default function VerifyOTP() {
 
   const handleResend = async () => {
     try {
-      const res = await resendClientOTP({ email });
+      const payload = { email };
+
+      const res =
+        role === "lawyer"
+          ? await resendLawyerOTP(payload)
+          : await resendClientOTP(payload);
 
       toast.success(res.message || "OTP resent");
 

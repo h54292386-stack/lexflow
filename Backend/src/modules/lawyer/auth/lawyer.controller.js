@@ -132,6 +132,8 @@ export const verifyOTPController = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       role: "lawyer",
+      profileCompleted: user.profileCompleted
+
     },
   });
 });
@@ -258,4 +260,3 @@ export const logoutLawyerController = asyncHandler(async (req, res) => {
 
   sendResponse(res, 200, true, "Logged out successfully");
 });
-

@@ -20,21 +20,6 @@ export const googleLoginClient = async (token) => {
   return res.data;
 };
 
-export const registerLawyer = async (data) => {
-  const res = await api.post("/lawyer/register", data);
-  return res.data;
-};
-
-export const loginLawyer = async (data) => {
-  const res = await api.post("/lawyer/login", data);
-  return res.data;
-};
-
-export const loginAdmin = async (data) => {
-  const res = await api.post("/admin/login", data);
-  return res.data;
-};
-
 export const verifyClientOTP = async (data) => {
   const res = await api.post("/client/verify-otp", data);
   return res.data;
@@ -161,5 +146,89 @@ export const uploadProfileImage = async (formData) => {
     }
   );
 
+  return res.data;
+};
+
+
+
+
+//lawyer
+
+
+export const registerLawyer = async (data) => {
+  const res = await api.post("/lawyer/register", data);
+  return res.data;
+};
+
+export const loginLawyer = async (data) => {
+  const res = await api.post("/lawyer/login", data);
+  return res.data;
+};
+
+export const verifyLawyerOTP = async (data) => {
+  const res = await api.post("/lawyer/verify-otp", data);
+
+  return res.data;
+};
+
+export const resendLawyerOTP = async (data) => {
+  const res = await api.post("/lawyer/resend-otp", data);
+
+  return res.data;
+};
+
+export const googleLoginLawyer = async (token) => {
+  const res = await api.post("/lawyer/google", { token });
+
+  return res.data;
+};
+
+export const getLawyerProfile = async () => {
+  const res = await api.get("/lawyer/details/profile");
+
+  return res.data;
+};
+
+export const updateLawyerProfile = async (data) => {
+  const res = await api.put(
+    "/lawyer/details/profile",
+    data
+  );
+
+  return res.data;
+};
+
+export const changeLawyerPassword = async (data) => {
+  const res = await api.put(
+    "/lawyer/details/change-password",
+    data
+  );
+
+  return res.data;
+};
+
+export const uploadLawyerProfileImage = async (formData) => {
+  const res = await api.put(
+    "/lawyer/details/profile/image",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+
+  return res.data;
+};
+
+
+
+
+
+// admin
+
+
+export const loginAdmin = async (data) => {
+  const res = await api.post("/admin/login", data);
   return res.data;
 };
