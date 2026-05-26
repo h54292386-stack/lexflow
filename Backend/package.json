@@ -16,6 +16,7 @@
     "cloudinary": "^1.41.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
+    "crypto": "^1.0.1",
     "crypto-js": "^4.2.0",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
@@ -28,6 +29,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "node.js": "^0.0.1-security",
     "nodemailer": "^8.0.7",
+    "razorpay": "^2.9.6",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {

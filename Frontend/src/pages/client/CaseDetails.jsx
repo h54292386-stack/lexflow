@@ -623,49 +623,51 @@ export default function CaseDetails() {
             </div>
           )}
 
-        <div className="border-2 border-black/10 bg-gray-50 rounded-xl p-5 mb-6 shadow-sm">
-  {/* Header */}
-  <div className="flex items-start justify-between">
-    <div>
-      <h3 className="font-semibold text-lg text-black">
-         Share Documents With Lawyer
-      </h3>
+          <div className="border-2 border-black/10 bg-gray-50 rounded-xl p-5 mb-6 shadow-sm">
+            {/* Header */}
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="font-semibold text-lg text-black">
+                  Share Documents With Lawyer
+                </h3>
 
-      <p className="text-sm text-gray-600 mt-1">
-        Control whether assigned or requested lawyers can access case documents
-      </p>
-    </div>
+                <p className="text-sm text-gray-600 mt-1">
+                  Control whether assigned or requested lawyers can access case
+                  documents
+                </p>
+              </div>
 
-    {/* Toggle */}
-    <label className="relative inline-flex items-center cursor-pointer">
-      <input
-        type="checkbox"
-        className="sr-only peer"
-        checked={formData?.shareWithLawyer || false}
-        disabled={!isEditing}
-        onChange={(e) =>
-          handleInputChange("shareWithLawyer", e.target.checked)
-        }
-      />
+              {/* Toggle */}
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={formData?.shareWithLawyer || false}
+                  disabled={!isEditing}
+                  onChange={(e) =>
+                    handleInputChange("shareWithLawyer", e.target.checked)
+                  }
+                />
 
-      {/* Track */}
-      <div
-        className={`w-11 h-6 rounded-full transition-all duration-200
+                {/* Track */}
+                <div
+                  className={`w-11 h-6 rounded-full transition-all duration-200
           peer-checked:bg-black
           ${isEditing ? "bg-gray-300" : "bg-gray-200 opacity-50 cursor-not-allowed"}
-        `}
-      ></div>
+           `}
+                ></div>
 
-      {/* Thumb */}
-      <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"></div>
-    </label>
-  </div>
+                {/* Thumb */}
+                <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"></div>
+              </label>
+            </div>
 
-  {/* Extra highlight info */}
-  <div className="mt-4 text-xs text-yellow-900 bg-yellow-100 border rounded-lg p-3">
-     When enabled, lawyers you request or assign will be able to view uploaded case documents.
-  </div>
-</div>
+            {/* Extra highlight info */}
+            <div className="mt-4 text-xs text-yellow-900 bg-yellow-100 border rounded-lg p-3">
+              When enabled, lawyers you request or assign will be able to view
+              uploaded case documents.
+            </div>
+          </div>
           {caseData.documents?.length > 0 ? (
             <div className="space-y-3">
               {caseData.documents.map((doc) => (
@@ -702,6 +704,117 @@ export default function CaseDetails() {
             </div>
           ) : (
             <p>No documents uploaded</p>
+          )}
+        </div>
+
+        {/* REQUESTED LAWYERS */}
+        <div className="border rounded-xl p-6 mt-6">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-xl font-semibold">Requested Lawyers</h2>
+
+              <p className="text-sm text-gray-500 mt-1">
+                Lawyers requested for this case
+              </p>
+            </div>
+
+            {/* Request New Lawyer Button */}
+            <button
+              className="bg-black text-white px-4 py-2 rounded-lg"
+              onClick={() => navigate(`/lawyers?caseId=${caseId}`)}
+            >
+              Request Lawyer
+            </button>
+          </div>
+
+          {/* EMPTY STATE */}
+          {caseData?.requestedLawyers?.length === 0 ? (
+            <div className="border rounded-lg p-6 text-center text-gray-500">
+              No lawyers requested yet
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {caseData?.requestedLawyers?.map((request) => {
+                const lawyer = request.lawyerId;
+                console.log("LAWYER:", lawyer);
+
+                if (!lawyer) return null;
+
+                return (
+                  <div
+                    key={lawyer.id || lawyer}
+                    className="border rounded-xl p-4 flex items-center justify-between"
+                  >
+                    {/* LEFT */}
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={lawyer.profileImage}
+                        alt={lawyer.name}
+                        className="w-14 h-14 rounded-full object-cover"
+                      />
+
+                      <div>
+                        <h3 className="font-semibold text-lg">{lawyer.name}</h3>
+
+                        <p className="text-sm text-gray-500">
+                          {Array.isArray(lawyer.specialization)
+                            ? lawyer.specialization.join(", ")
+                            : lawyer.specialization}
+                        </p>
+
+                        <p className="text-sm text-gray-500">
+                          {lawyer.city}, {lawyer.state}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* RIGHT */}
+                    <div className="flex flex-col items-end gap-2">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium
+              ${
+                request.status === "accepted"
+                  ? "bg-green-100 text-green-700"
+                  : request.status === "rejected"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-yellow-100 text-yellow-700"
+              }
+            `}
+                      >
+                        {request.status}
+                      </span>
+                      <button
+                        className="text-sm text-black underline"
+                        onClick={() => {
+                          const lawyerId =
+                            typeof lawyer === "object" ? lawyer.id : lawyer;
+
+                          navigate(`/lawyerDetails/${lawyer.id}`);
+                        }}
+                      >
+                        View Profile
+                      </button>
+
+                      {request.status === "accepted" && (
+                        <button
+                          className="bg-black text-white px-4 py-2 rounded-lg text-sm"
+                        onClick={() =>
+  navigate(`/consultation/${caseId}/${lawyer.id}`, {
+    state: {
+      lawyerName: lawyer.name,
+      caseName: caseData.caseDetails?.caseName,
+    },
+  })
+}
+                        >
+                          Consultation 
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>

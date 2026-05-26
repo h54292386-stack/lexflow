@@ -123,7 +123,7 @@ const caseId = searchParams.get("caseId");
               lawyer={lawyer}
               onView={handleView}
               onSelect={handleSelect}
-              isSelected={selectedLawyers.includes(lawyer.id?.toString())}
+              isSelected={selectedLawyers.includes(lawyer._id?.toString())}
             />
           );
         })}

@@ -11,6 +11,7 @@ const storage = new CloudinaryStorage({
       "jpg",
       "jpeg",
       "png",
+        "jfif",
       "pdf",
       "mp4",
       "mov",
@@ -21,10 +22,13 @@ const storage = new CloudinaryStorage({
 });
 
 const fileFilter = (req, file, cb) => {
+
  const allowedMimeTypes = [
     "image/jpeg",
     "image/png",
     "image/jpg",
+     "image/jfif",
+    "application/octet-stream",
     "application/pdf",
     "video/mp4",
     "video/quicktime",

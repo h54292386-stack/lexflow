@@ -18,12 +18,18 @@ export const update = (id, data) => {
 
 export const findCasesByClientId = async (clientId) => {
   return await Case.find({ clientId })
-    .populate("requestedLawyers.lawyerId", "name email")
+  .populate(
+  "requestedLawyers.lawyerId",
+  "name email profileImage specialization city state"
+)
     .sort({ createdAt: -1 });
 };
 
 export const findCaseById = async (caseId) => {
-  return await Case.findById(caseId);
+  return await Case.findById(caseId).populate(
+    "requestedLawyers.lawyerId",
+    "name profileImage specialization city state"
+  );
 };
 
 export const deleteCaseDocumentRepo = async (caseId, docId) => {

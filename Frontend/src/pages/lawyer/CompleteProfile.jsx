@@ -23,8 +23,8 @@ export default function CompleteLawyerProfile() {
     gender: "",
     dateOfBirth: "",
 
-    address: {
-      houseFlatNo: "",
+    officeAddress: {
+      officeName: "",
       street: "",
       city: "",
       state: "",
@@ -36,11 +36,11 @@ export default function CompleteLawyerProfile() {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if (name in form.address) {
+    if (name in form.officeAddress) {
       setForm({
         ...form,
-        address: {
-          ...form.address,
+        officeAddress: {
+          ...form.officeAddress,
           [name]: value,
         },
       });
@@ -197,14 +197,14 @@ export default function CompleteLawyerProfile() {
 
             {/* ADDRESS */}
             <div>
-              <h3 className="font-semibold text-lg mb-3">Home Address</h3>
+              <h3 className="font-semibold text-lg mb-3">Office Address</h3>
 
               <div className="grid md:grid-cols-2 gap-4">
                 <input
                   type="text"
-                  name="houseFlatNo"
-                  placeholder="House / Flat No"
-                  value={form.address.houseFlatNo}
+                  name="officeName"
+                  placeholder="officeName / Flat No"
+                  value={form.officeAddress.officeName}
                   onChange={handleChange}
                   className="border p-3 rounded-lg"
                 />
@@ -213,7 +213,7 @@ export default function CompleteLawyerProfile() {
                   type="text"
                   name="street"
                   placeholder="Street"
-                  value={form.address.street}
+                  value={form.officeAddress.street}
                   onChange={handleChange}
                   className="border p-3 rounded-lg"
                 />
@@ -222,7 +222,7 @@ export default function CompleteLawyerProfile() {
                   type="text"
                   name="city"
                   placeholder="City"
-                  value={form.address.city}
+                  value={form.officeAddress.city}
                   onChange={handleChange}
                   className="border p-3 rounded-lg"
                 />
@@ -231,7 +231,7 @@ export default function CompleteLawyerProfile() {
                   type="text"
                   name="state"
                   placeholder="State"
-                  value={form.address.state}
+                  value={form.officeAddress.state}
                   onChange={handleChange}
                   className="border p-3 rounded-lg"
                 />
@@ -240,7 +240,7 @@ export default function CompleteLawyerProfile() {
                   type="text"
                   name="pinCode"
                   placeholder="PIN Code"
-                  value={form.address.pinCode}
+                  value={form.officeAddress.pinCode}
                   onChange={handleChange}
                   className="border p-3 rounded-lg"
                 />
@@ -249,7 +249,7 @@ export default function CompleteLawyerProfile() {
                   type="text"
                   name="country"
                   placeholder="Country"
-                  value={form.address.country}
+                  value={form.officeAddress.country}
                   onChange={handleChange}
                   className="border p-3 rounded-lg"
                 />

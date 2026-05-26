@@ -22,6 +22,10 @@ import Profile from "./pages/client/Profile.jsx";
 import CompleteProfile from "./pages/client/CompleteProfile.jsx";
 import Welcome from "./pages/client/Welcome.jsx";
 import ChangePassword from "./pages/client/ChangePassword.jsx";
+import PaymentPage from "./pages/client/PaymentPage.jsx";
+import ConsultationPaymentPage from "./pages/client/Consultation.jsx";
+import PaymentHistoryPage from "./pages/client/PaymentHistory.jsx";
+
 
 // lawyer
 import LawyerRegister from "./pages/lawyer/Register.jsx";
@@ -29,15 +33,15 @@ import LawyerLogin from "./pages/lawyer/Login.jsx";
 import LawyerHome from "./pages/lawyer/Home.jsx";
 import LawyerWelcome from "./pages/lawyer/Welcome.jsx";
 import LawyerCompleteProfile from "./pages/lawyer/CompleteProfile.jsx";
-
-
+import LawyerVerification from "./pages/lawyer/Verification.jsx";
+import LawyerLayout from "./pages/lawyer/LawyerLayout.jsx";
+import Dashboard from "./pages/lawyer/Dashboard.jsx";
+import Cases from "./pages/lawyer/Cases.jsx";
+import CasesDetails from "./pages/lawyer/CaseDetails.jsx";
 
 // admin
 import AdminLogin from "./pages/admin/Login.jsx";
 import AdminHome from "./pages/admin/Home.jsx";
-
-
-
 
 function App() {
   return (
@@ -50,8 +54,7 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
 
-
-         {/* client */}
+        {/* client */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/home" element={<Home />} />
@@ -66,22 +69,43 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/complete-profile" element={<CompleteProfile />} />
         <Route path="/change-password" element={<ChangePassword />} />
-
+        <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/consultation/:caseId/:lawyerId" element={<ConsultationPaymentPage />} />
+        <Route path="/payment-history" element={<PaymentHistoryPage />} />
 
         {/* lawyer */}
         <Route path="/lawyer/register" element={<LawyerRegister />} />
         <Route path="/lawyer/login" element={<LawyerLogin />} />
         <Route path="/lawyer/welcome" element={<LawyerWelcome />} />
-        <Route path="/lawyer/complete-profile" element={<LawyerCompleteProfile />} />
+        <Route
+          path="/lawyer/complete-profile"
+          element={<LawyerCompleteProfile />}
+        />
         <Route path="/lawyer/home" element={<LawyerHome />} />
-
-
+        <Route path="/lawyer/verification" element={<LawyerVerification />} />
+        <Route
+          path="/lawyer/dashboard"
+          element={
+            <LawyerLayout>
+              {" "}
+              <Dashboard />{" "}
+            </LawyerLayout>
+          }
+        />
+        <Route
+          path="/lawyer/cases"
+          element={
+            <LawyerLayout>
+              {" "}
+              <Cases />{" "}
+            </LawyerLayout>
+          }
+        />
+        <Route path="/lawyer/cases/:id" element={<CasesDetails />} />
 
         {/* admin */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/home" element={<AdminHome />} />
-
-
 
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route

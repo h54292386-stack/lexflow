@@ -56,6 +56,12 @@ const officeAddressSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    
+    state: {
+        type: String,
+        required: true,
+        trim: true
+    },
 
     pinCode: {
         type: String,

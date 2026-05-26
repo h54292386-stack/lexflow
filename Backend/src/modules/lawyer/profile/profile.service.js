@@ -29,7 +29,7 @@ export const updateLawyerProfileService = async (
     "alternatePhone",
     "gender",
     "dateOfBirth",
-    "address",
+    "officeAddress",
     "profileImage",
   ];
 
@@ -66,12 +66,12 @@ export const updateLawyerProfileService = async (
     requiredFields.every(
       (field) => mergedData[field]
     ) &&
-    mergedData.address?.houseFlatNo &&
-    mergedData.address?.street &&
-    mergedData.address?.city &&
-    mergedData.address?.state &&
-    mergedData.address?.pinCode &&
-    mergedData.address?.country;
+    mergedData.officeAddress?.officeName &&
+    mergedData.officeAddress?.street &&
+    mergedData.officeAddress?.city &&
+    mergedData.officeAddress?.state &&
+    mergedData.officeAddress?.pinCode &&
+    mergedData.officeAddress?.country;
 
   if (isProfileComplete) {
     filteredData.profileCompleted = true;

@@ -42,7 +42,7 @@ export default function HowItWorks({ showBackButton = true }) {
               
                 {showBackButton && (
                 <button
-                  onClick={() => navigate("/")}
+                  onClick={() => navigate("/home")}
                   className="absolute top-6 left-6 flex items-center gap-2 text-gray-700 hover:text-black"
                 >
                   <FaArrowLeft className="w-4 h-4 text-gray-500 hover:text-black transition" />

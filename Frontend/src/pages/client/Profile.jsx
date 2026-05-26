@@ -80,7 +80,7 @@ export default function Profile() {
               {!isEditing ? (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded"
+                  className="bg-black text-white px-4 py-2 rounded"
                 >
                   Edit Profile
                 </button>
@@ -313,7 +313,7 @@ function ProfileImageUpload({ image, onUpload }) {
       <button
         type="button"
         onClick={() => fileRef.current.click()}
-        className="mt-3 px-4 py-2 bg-blue-500 text-white rounded-lg"
+        className="mt-3 px-4 py-2 bg-black text-white rounded-lg"
       >
         Change Photo
       </button>

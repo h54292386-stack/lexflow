@@ -190,27 +190,19 @@ export const getLawyerProfile = async () => {
 };
 
 export const updateLawyerProfile = async (data) => {
-  const res = await api.put(
-    "/lawyer/details/profile",
-    data
-  );
+  const res = await api.put("/lawyer/details/profile", data);
 
   return res.data;
 };
 
 export const changeLawyerPassword = async (data) => {
-  const res = await api.put(
-    "/lawyer/details/change-password",
-    data
-  );
+  const res = await api.put("/lawyer/details/change-password", data);
 
   return res.data;
 };
 
 export const uploadLawyerProfileImage = async (formData) => {
-  const res = await api.put(
-    "/lawyer/details/profile/image",
-    formData,
+  const res = await api.put("/lawyer/details/profile/image", formData,
     {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -221,6 +213,21 @@ export const uploadLawyerProfileImage = async (formData) => {
   return res.data;
 };
 
+export const submitLawyerVerification = async (formData) => {
+
+  const res = await api.put("/lawyer/verification/submit", formData,
+    {
+      headers: {
+        "Content-Type":
+          "multipart/form-data",
+      },
+    }
+  );
+
+
+  return res.data;
+
+};
 
 
 
@@ -231,4 +238,34 @@ export const uploadLawyerProfileImage = async (formData) => {
 export const loginAdmin = async (data) => {
   const res = await api.post("/admin/login", data);
   return res.data;
+};
+
+//payment
+
+export const createPaymentOrder =
+  async (amount) => {
+
+    const res = await api.post(
+      "/payment/create-order",
+      {
+        amount,
+      }
+    );
+
+    return res.data;
+  };
+
+export const verifyPayment = async (paymentData) => {
+
+    const res = await api.post(
+      "/payment/verify-payment",
+      paymentData
+    );
+
+    return res.data;
+  };
+
+export const getPaymentHistory = async () => {
+  const { data } = await api.get("/payment/history");
+  return res.data.data;
 };
