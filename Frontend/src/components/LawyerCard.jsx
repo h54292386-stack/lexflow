@@ -2,13 +2,24 @@ import { FaStar, FaMapMarkerAlt, FaBriefcase } from "react-icons/fa";
 import { IoMdCheckmarkCircleOutline } from "react-icons/io";
 
 export default function LawyerCard({ lawyer, onView, onSelect, isSelected }) {
-const lawyerId = (lawyer._id || lawyer.id)?.toString();
+  const lawyerId = (lawyer._id || lawyer.id)?.toString();
+  console.log("LAWYER CARD DATA:", lawyer);
   return (
     <div className="bg-white rounded-xl shadow-md p-5 border hover:shadow-lg transition">
       {/* Top Section */}
       <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-full bg-black flex items-center justify-center text-xl text-white font-bold">
-          {lawyer.name?.charAt(0) || "L"}
+        <div className="w-14 h-14 rounded-full overflow-hidden bg-black flex items-center justify-center">
+          {lawyer.profileImage ? (
+            <img
+              src={lawyer.profileImage}
+              alt={lawyer.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span className="text-xl text-white font-bold">
+              {lawyer.name?.charAt(0)?.toUpperCase() || "L"}
+            </span>
+          )}
         </div>
 
         <div className="flex-1">
@@ -29,12 +40,18 @@ const lawyerId = (lawyer._id || lawyer.id)?.toString();
       <div className="mt-4 text-sm text-gray-600 space-y-1">
         <div className="flex items-center gap-2">
           <FaBriefcase />
-          {lawyer.specialization?.[0] || "General Law"}
+          {lawyer.specialization?.length
+            ? lawyer.specialization.join(", ")
+            : "General Law"}
         </div>
 
         <div className="flex items-center gap-2">
           <FaMapMarkerAlt />
-          {lawyer.officeAddress?.city || "Location"}
+          <span>
+            {lawyer.officeAddress
+              ? `${lawyer.officeAddress.street}, ${lawyer.officeAddress.city}, ${lawyer.officeAddress.state}`
+              : "Location not available"}
+          </span>
         </div>
 
         <p className="text-gray-500 mt-1">

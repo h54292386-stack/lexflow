@@ -31,9 +31,9 @@ const AdminLogin = () => {
 
       const res = await loginAdmin(form);
 
-      const { accessToken, user } = res;
+      const { accessToken, admin: user } = res;
+login(user, accessToken);
 
-      login(user, accessToken);
 
       toast.success("Admin login successful ");
 

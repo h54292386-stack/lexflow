@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken"; 
 import Client from "../../modules/client/auth/client.model.js"; 
 import Lawyer from "../../modules/lawyer/auth/lawyer.model.js"; 
+import Admin from "../../modules/admin/auth/admin.model.js";
 import { asyncHandler } from "./asyncHandler.js"; 
 import AppError from "../utils/AppError.js"; 
 
@@ -11,7 +12,10 @@ const findUserById = async (id) => {
   if (!user) { 
     user = await Lawyer.findById(id).select("-password");
   }
-  
+    if (!user) {
+    user = await Admin.findById(id).select("-password");
+  }
+
   return user; 
 }; 
 
@@ -48,8 +52,9 @@ if (!user.isActive) {
 }
 
 req.user = {
+  _id: user._id,
   id: user._id,
-  role: user.role
+  role: user.role || decoded.role
 };
 
 next(); 

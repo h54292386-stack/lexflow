@@ -9,6 +9,7 @@ export default function ChatSidebar({
   activeConversation,
   openConversation,
 }) {
+  
   return (
     <div className="w-[320px] h-full bg-white border-r flex flex-col">
       <div className="p-5 border-b sticky top-0 bg-white z-10">
@@ -27,6 +28,10 @@ export default function ChatSidebar({
 
       <div className="flex-1 overflow-y-auto">
         {conversations?.map((conv) => {
+            console.log(
+    "SIDEBAR LATEST MESSAGE:",
+    conv?.latestMessage
+  );
           const other = conv?.participants?.find((p) => {
             const participantId = String(
               p?.userId?._id || p?.userId?.id || p?.userId,

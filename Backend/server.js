@@ -12,18 +12,30 @@ import { saveMessageService, } from "./src/modules/client/chat/chat.service.js";
 import Conversation from "./src/modules/client/chat/conversation.model.js";
 import Message from "./src/modules/client/chat/chat.model.js";
 import { encryptMessage } from "./src/shared/utils/crypto.js";
-
+import {
+  setSocketData,
+} from "./src/socket/socket.js";
 
 const PORT = process.env.PORT || 5000;
 const httpServer = createServer(app);
 const onlineUsers = new Map();
 
-const io = new Server(httpServer, {
-  cors: {
-    origin: "http://localhost:5173",
-    credentials: true,
-  },
-});
+
+const io = new Server(
+  httpServer,
+  {
+    cors: {
+      origin:
+        "http://localhost:5173",
+      credentials: true,
+    },
+  }
+);
+
+setSocketData(
+  io,
+  onlineUsers
+);
 
 io.use((socket, next) => {
   let token = socket.handshake.auth.token;
@@ -326,8 +338,6 @@ io.on("connection", (socket) => {
       });
     }
   );
-
-
 
 
 

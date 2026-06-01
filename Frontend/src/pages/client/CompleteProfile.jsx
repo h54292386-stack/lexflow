@@ -20,6 +20,7 @@ export default function CompleteProfile() {
     alternatePhone: "",
     gender: "",
     dateOfBirth: "",
+    occupation:"",
 
     address: {
       houseFlatNo: "",
@@ -183,6 +184,15 @@ export default function CompleteProfile() {
               type="date"
               name="dateOfBirth"
               value={form.dateOfBirth}
+              onChange={handleChange}
+              className="w-full border p-3 rounded-lg"
+            />
+
+            <input
+              type="text"
+              name="occupation"
+              placeholder="occupation"
+              value={form.occupation}
               onChange={handleChange}
               className="w-full border p-3 rounded-lg"
             />

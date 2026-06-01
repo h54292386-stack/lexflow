@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import Client from "../client/auth/client.model.js";
 import Lawyer from "../lawyer/auth/lawyer.model.js";
+import Admin from "../admin/auth/admin.model.js";
 import { asyncHandler } from "../../shared/middleware/asyncHandler.js";
 import { sendResponse } from "../../shared/utils/response.js";
 import { setRefreshTokenCookie } from "../../shared/utils/cookie.js";
@@ -14,6 +15,10 @@ const findUser = async (userId) => {
     if (!user) {
         user = await Lawyer.findById(userId).select("+refreshToken");
     }
+        if (!user) {
+        user = await Admin.findById(userId).select("+refreshToken");
+    }
+
 
     return user;
 };

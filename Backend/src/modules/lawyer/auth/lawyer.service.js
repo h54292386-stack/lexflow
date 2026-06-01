@@ -54,12 +54,11 @@ export const registerLawyer = async (data = {}) => {
   const hashedOTP = await bcrypt.hash(otp, 10);
 
 
-  const hashedPassword = await bcrypt.hash(password, 10);
 
   const newLawyer = await createLawyer({
     name,
     email,
-    password: hashedPassword,
+    password,
     barCouncilNumber,  
     otp: hashedOTP,
     otpExpires: Date.now() + 5 * 60 * 1000,

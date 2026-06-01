@@ -6,7 +6,7 @@ const findAllVerified = () => {
     isApproved: true,
     isActive: true
   })
-    .select("name specialization experience rating profileImage")
+    .select( "name specialization experience rating profileImage officeAddress totalCases totalReviews address dateofBirt gender Phone alternatePhone barCouncilNumber")
     .sort({ createdAt: -1 });
 };
 

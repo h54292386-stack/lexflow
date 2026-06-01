@@ -5,8 +5,11 @@ import {
   uploadProfileImage,
 } from "../../service/AuthService.js";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
 
 export default function Profile() {
+     const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -58,6 +61,12 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md p-6">
+          <button
+                  onClick={() => navigate("/home")}
+                  className="absolute top-6 left-6 flex items-center gap-2 text-gray-700 hover:text-black"
+                >
+                 <FaArrowLeft className="w-4 h-4 text-gray-500 hover:text-black transition" />
+                </button>
         <h1 className="text-2xl font-bold mb-6">My Profile</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -129,6 +138,7 @@ function ProfileForm({ user, onSave, isEditing }) {
     dateOfBirth: user?.dateOfBirth
       ? user.dateOfBirth.split("T")[0]
       : "",
+    occupation:user?.occupation || "",
 
     address: {
       houseFlatNo: user?.address?.houseFlatNo || "",
@@ -211,6 +221,15 @@ function ProfileForm({ user, onSave, isEditing }) {
         onChange={handleChange}
         disabled={!isEditing}
         placeholder="dateOfBirth"
+        className="w-full p-2 border rounded"
+      />
+
+       <input
+        name="occupation"
+        value={form.occupation}
+        onChange={handleChange}
+        disabled={!isEditing}
+        placeholder="occupation"
         className="w-full p-2 border rounded"
       />
 

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const addressSchema = new mongoose.Schema({
     houseFlatNo: {
@@ -56,7 +57,7 @@ const officeAddressSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    
+
     state: {
         type: String,
         required: true,
@@ -183,6 +184,9 @@ const lawyerSchema = new mongoose.Schema(
             unique: true,
             sparse: true,
             trim: true,
+            required: function () {
+                return this.provider === "local";
+            },
         },
 
         role: {
@@ -255,8 +259,13 @@ const lawyerSchema = new mongoose.Schema(
 
         verificationStatus: {
             type: String,
-            enum: ["pending", "submitted", "approved", "rejected"],
-            default: "pending"
+            enum: [
+                "not_submitted",
+                "pending",
+                "approved",
+                "rejected"
+            ],
+            default: "not_submitted"
         },
         profileCompleted: {
             type: Boolean,
@@ -344,6 +353,17 @@ lawyerSchema.methods.toJSON = function () {
 
     return obj;
 };
+
+lawyerSchema.pre("save", async function () {
+
+    if (!this.isModified("password")) {
+        return;
+    }
+
+    this.password = await bcrypt.hash(this.password, 10);
+
+  
+});
 
 const Lawyer = mongoose.model("Lawyer", lawyerSchema);
 

@@ -20,18 +20,43 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes(
+      "refresh-token"
+    )
+    ) {
       originalRequest._retry = true;
 
       try {
-        const res = await api.post("/client/refresh-token");
+        const role =
+          localStorage.getItem("role");
+
+        let refreshUrl =
+          "/client/refresh-token";
+
+        if (role === "lawyer") {
+
+          refreshUrl =
+            "/lawyer/refresh-token";
+
+        } else if (
+          role === "admin"
+        ) {
+
+          refreshUrl =
+            "/admin/refresh-token";
+        }
+
+        const res =
+          await api.post(refreshUrl);
 
         const newAccessToken = res.data.accessToken;
 
         localStorage.setItem("accessToken", newAccessToken);
 
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-
+        originalRequest.headers = {
+          ...originalRequest.headers,
+          Authorization: `Bearer ${newAccessToken}`,
+        };
         return api(originalRequest);
 
       } catch (err) {
@@ -40,7 +65,28 @@ api.interceptors.response.use(
         localStorage.removeItem("accessToken");
         localStorage.removeItem("user");
         localStorage.removeItem("caseDraft");
-        window.location.href = "/login";
+        const role =
+          localStorage.getItem("role");
+
+        localStorage.clear();
+
+        if (role === "admin") {
+
+          window.location.href =
+            "/admin/login";
+
+        } else if (
+          role === "lawyer"
+        ) {
+
+          window.location.href =
+            "/lawyer/login";
+
+        } else {
+
+          window.location.href =
+            "/login";
+        }
 
         return Promise.reject(err);
       }

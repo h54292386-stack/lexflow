@@ -7,8 +7,11 @@ import {
   FiEye,
   FiEyeOff,
 } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
 
 export default function ChangePassword() {
+     const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     currentPassword: "",
@@ -82,7 +85,12 @@ export default function ChangePassword() {
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
-
+ <button
+                  onClick={() => navigate("/home")}
+                  className="absolute top-6 left-6 flex items-center gap-2 text-gray-700 hover:text-black"
+                >
+                 <FaArrowLeft className="w-4 h-4 text-gray-500 hover:text-black transition" />
+                </button>
       {/* Header */}
       <div className="bg-black px-8 py-6 text-white">
 

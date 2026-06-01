@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   FaStar,
@@ -17,13 +17,15 @@ import { FiMessageSquare } from "react-icons/fi";
 import { MdGavel } from "react-icons/md";
 import { getLawyerById } from "../../service/AuthService.js";
 import Footer from "../../components/Footer.jsx";
-import { useNavigate } from "react-router-dom";
 
 export default function LawyerDetails() {
   const navigate = useNavigate();
 
   const { id } = useParams();
   const [lawyer, setLawyer] = useState(null);
+  const [searchParams] = useSearchParams();
+
+  const caseId = searchParams.get("caseId");
 
   useEffect(() => {
     fetchLawyer();
@@ -36,7 +38,6 @@ export default function LawyerDetails() {
       console.log(res);
 
       setLawyer(res.data);
-      console.log("LAWYER API DATA:", res.data);
     } catch (err) {
       console.error(err);
     }
@@ -51,7 +52,9 @@ export default function LawyerDetails() {
       <div className="bg-[#F5F5F5] min-h-screen py-10 px-6">
         <div className="max-w-6xl mx-auto space-y-6">
           <button
-            onClick={() => navigate("/lawyers")}
+            onClick={() =>
+              navigate(caseId ? `/lawyers?caseId=${caseId}` : "/lawyers")
+            }
             className="absolute top-6 left-8 text-xs text-gray-400 hover:underline"
           >
             <FaArrowLeft />
@@ -103,7 +106,9 @@ export default function LawyerDetails() {
 
                 <span className="text-sm text-gray-400 border-l pl-3 flex items-center gap-1">
                   <FaMapMarkerAlt />
-                  {lawyer.officeAddress?.city || "Location not available"}
+                  {lawyer.officeAddress
+                    ? `${lawyer.officeAddress.street}, ${lawyer.officeAddress.city}, ${lawyer.officeAddress.state}`
+                    : "Location not available"}{" "}
                 </span>
               </div>
               {/* Cases */}
@@ -114,9 +119,7 @@ export default function LawyerDetails() {
               <button
                 className="mt-6 flex items-center gap-2 border border-black px-5 py-2 rounded-lg hover:bg-black hover:text-white transition mx-auto md:mx-0"
                 onClick={() => {
-
                   const lawyerId = lawyer?._id || lawyer?.id;
-
 
                   if (!lawyerId) {
                     alert("Lawyer ID missing");
@@ -153,11 +156,21 @@ export default function LawyerDetails() {
                   <div className="space-y-5 text-sm text-gray-700">
                     <div className="flex gap-3 items-start">
                       <FaGraduationCap className="mt-1" />
-                      <span>
-                        {lawyer.education
-                          ? `${lawyer.education.degree} - ${lawyer.education.university}`
-                          : "Not specified"}
-                      </span>
+                      <div>
+                        {lawyer.education?.length > 0 ? (
+                          lawyer.education.map((edu) => (
+                            <div key={edu._id} className="mb-2">
+                              <p className="font-medium">{edu.degree}</p>
+                              <p className="text-gray-500">{edu.university}</p>
+                              <p className="text-gray-400 text-xs">
+                                {edu.startYear} - {edu.endYear}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <span>Not specified</span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex gap-3 items-center">
@@ -176,7 +189,9 @@ export default function LawyerDetails() {
                     <div className="flex gap-3 items-start">
                       <FaMapMarkerAlt className="mt-1" />
                       <span>
-                        {lawyer.officeAddress?.city || "Location not available"}
+                        {lawyer.officeAddress
+                          ? `${lawyer.officeAddress.street}, ${lawyer.officeAddress.city}, ${lawyer.officeAddress.state}`
+                          : "Location not available"}{" "}
                       </span>
                     </div>
                   </div>

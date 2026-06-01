@@ -31,7 +31,11 @@ export const AuthProvider = ({ children }) => {
 
     if (!token) {
       setUser(null);
-    }
+    }else {
+    // Reconnect socket on page reload
+    const s = connectSocket(token);
+    setSocket(s);
+  }
 
     setLoading(false);
   }, []);
@@ -39,6 +43,7 @@ export const AuthProvider = ({ children }) => {
 const login = (userData, token) => {
   localStorage.setItem("accessToken", token);
   localStorage.setItem("user", JSON.stringify(userData));
+  localStorage.setItem("role", userData.role);  // ← ADD THIS LINE
 
   setUser(userData);
 

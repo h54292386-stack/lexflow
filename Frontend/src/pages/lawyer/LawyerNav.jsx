@@ -1,21 +1,27 @@
 import { MdBalance } from "react-icons/md";
 import { FaBell, FaUserCircle, FaComments } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
-import { getLawyerProfile } from "../../service/AuthService.js";
+import {
+  getLawyerProfile,
+  getNotifications,
+  logoutLawyer,
+  markAllNotificationsRead,
+} from "../../service/AuthService.js";
 import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { getSocket } from "../../socket.js";
 
-export default function LawyerNavbar(){
-      const [open, setOpen] = useState(false);
+export default function LawyerNavbar() {
+  const [open, setOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
   const { logout } = useAuth();
   const dropdownRef = useRef();
   const navigate = useNavigate();
 
-
-   useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setOpen(false);
@@ -26,24 +32,101 @@ export default function LawyerNavbar(){
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await getLawyerProfile();
+        setUser(res.user);
+      } catch (err) {
+        console.error(err);
+      }
+    };
 
-   useEffect(() => {
-      const fetchUser = async () => {
-        try {
-          const res = await getLawyerProfile();
-          setUser(res.user);
-        } catch (err) {
-          console.error(err);
-        }
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await getNotifications();
+
+        setNotifications(res.data.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    if (socket) {
+      // Listen for the incoming real-time notification
+      socket.on("notification", (newNotification) => {
+        // 1. Update the dropdown list dynamically (add the new notification to the top)
+        setNotifications((prevNotifications) => [
+          newNotification,
+          ...prevNotifications,
+        ]);
+
+        // 2. (Optional) Show a toast alert to the lawyer immediately
+        toast(newNotification.message, {
+          icon: newNotification.type === "success" ? "✅" : "❌",
+        });
+      });
+
+      // Cleanup listener on unmount
+      return () => {
+        socket.off("notification");
       };
-  
-      fetchUser();
-    }, []);
+    }
+  }, []);
 
+  const unreadCount = notifications.filter(
+    (notification) => !notification.isRead,
+  ).length;
 
-    return(
+  const markAllAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  };
 
-        <nav className="flex items-center justify-between px-10 py-4 bg-white shadow-sm">
+  const clearNotifications = async () => {
+    try {
+      await clearAllNotifications(); // backend API
+
+      setNotifications([]);
+      setShowNotifications(false);
+
+      toast.success("Notifications cleared");
+    } catch (err) {
+      console.log(err);
+      toast.error("Failed to clear notifications");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutLawyer();
+
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+      localStorage.removeItem("role");
+
+      logout?.();
+
+      toast.success("Logged out successfully");
+
+      navigate("/lawyer/login");
+    } catch (error) {
+      console.error(error);
+      toast.error("Logout failed");
+    }
+  };
+
+  return (
+    <nav className="flex items-center justify-between px-10 py-4 bg-white shadow-sm">
       <div className="flex items-center gap-2 font-bold text-lg">
         <MdBalance size={28} />
         LexFlow
@@ -77,14 +160,72 @@ export default function LawyerNavbar(){
         </Link>
 
         <div className="relative">
-          <FaBell className="text-[19px] cursor-pointer hover:text-black transition" />{" "}
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full">
-            3
-          </span>
+          <FaBell
+            onClick={async () => {
+              setShowNotifications((prev) => !prev);
+
+              try {
+                await markAllNotificationsRead();
+
+                setNotifications((prev) =>
+                  prev.map((n) => ({ ...n, isRead: true })),
+                );
+              } catch (err) {
+                console.log(err);
+              }
+            }}
+            className="text-[19px] cursor-pointer hover:text-black transition"
+          />{" "}
+          {unreadCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full">
+              {unreadCount}
+            </span>
+          )}
+          {showNotifications && (
+            <div className="absolute right-0 mt-3 w-80 bg-white shadow-lg rounded-xl border z-50 max-h-96 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="p-4 text-gray-500">No notifications</div>
+              ) : (
+                notifications.map((notification) => (
+                  <div
+                    key={notification._id}
+                    className={`p-4 border-b ${
+                      !notification.isRead ? "bg-blue-50" : ""
+                    }`}
+                  >
+                    <h4 className="font-semibold">{notification.title}</h4>
+
+                    <p className="text-sm text-gray-600">
+                      {notification.message}
+                    </p>
+                   <button
+                  onClick={clearNotifications}
+                  className="text-red-500 text-sm hover:underline"
+                >
+                  Clear All
+                </button>
+                </div>
+                    
+              
+                ))
+              )}
+              <div className="border-t p-2 text-center">
+                <Link
+                  to="/lawyer/notifications"
+                  className="text-blue-600 text-sm hover:underline"
+                >
+                  View All Notifications
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="relative" ref={dropdownRef}>
-          <div onClick={() => setOpen(!open)} className="cursor-pointer">
+          <div
+            onClick={() => setOpen(!open)}
+            className="flex items-center gap-2 cursor-pointer"
+          >
             {user?.profileImage ? (
               <img
                 src={user.profileImage}
@@ -105,7 +246,7 @@ export default function LawyerNavbar(){
               </div>
 
               <Link
-                to="/"
+                to="/lawyer/profile"
                 className="block px-4 py-2 text-sm hover:bg-gray-100"
               >
                 My Profile
@@ -128,8 +269,5 @@ export default function LawyerNavbar(){
         </div>
       </div>
     </nav>
-
-    );
-
-
+  );
 }

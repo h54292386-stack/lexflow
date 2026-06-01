@@ -19,8 +19,7 @@ export const submitVerificationService =
       );
     }
 
-    lawyer.barCouncilNumber =
-      data.barCouncilNumber;
+   
 
     lawyer.experience =
       data.experience;
@@ -48,7 +47,7 @@ export const submitVerificationService =
     };
 
     lawyer.verificationStatus =
-      "submitted";
+      "pending";
 
     await lawyer.save();
 

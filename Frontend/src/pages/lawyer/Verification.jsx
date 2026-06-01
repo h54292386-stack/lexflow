@@ -2,9 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
-import {
-  submitLawyerVerification,
-} from "../../service/AuthService.js";
+import { submitLawyerVerification } from "../../service/AuthService.js";
 
 export default function Verification() {
   const navigate = useNavigate();
@@ -16,14 +14,16 @@ export default function Verification() {
 
     specialization: "",
 
-    education: {
-      degree: "",
-      fieldOfStudy: "",
-      university: "",
-      startYear: "",
-      endYear: "",
-      grade: "",
-    },
+    education: [
+      {
+        degree: "",
+        fieldOfStudy: "",
+        university: "",
+        startYear: "",
+        endYear: "",
+        grade: "",
+      },
+    ],
   });
 
   const [documents, setDocuments] = useState({
@@ -68,6 +68,45 @@ export default function Verification() {
     }
   };
 
+  const handleEducationChange = (index, e) => {
+    const { name, value } = e.target;
+
+    const updatedEducation = [...form.education];
+
+    updatedEducation[index][name] = value;
+
+    setForm({
+      ...form,
+      education: updatedEducation,
+    });
+  };
+
+  const addEducationField = () => {
+    setForm({
+      ...form,
+      education: [
+        ...form.education,
+        {
+          degree: "",
+          fieldOfStudy: "",
+          university: "",
+          startYear: "",
+          endYear: "",
+          grade: "",
+        },
+      ],
+    });
+  };
+
+  const removeEducationField = (index) => {
+    const updatedEducation = form.education.filter((_, i) => i !== index);
+
+    setForm({
+      ...form,
+      education: updatedEducation,
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -76,66 +115,34 @@ export default function Verification() {
 
       const formData = new FormData();
 
-      formData.append(
-        "experience",
-        form.experience
-      );
+      formData.append("experience", form.experience);
 
       formData.append(
         "specialization",
-        JSON.stringify(
-          form.specialization
-            .split(",")
-            .map((s) => s.trim())
-        )
+        JSON.stringify(form.specialization.split(",").map((s) => s.trim())),
       );
 
-      formData.append(
-        "education",
-        JSON.stringify([form.education])
-      );
+      formData.append("education", JSON.stringify(form.education));
 
-      formData.append(
-        "barCertificate",
-        documents.barCertificate
-      );
+      formData.append("barCertificate", documents.barCertificate);
 
-      formData.append(
-        "enrollmentCertificate",
-        documents.enrollmentCertificate
-      );
+      formData.append("enrollmentCertificate", documents.enrollmentCertificate);
 
-      formData.append(
-        "idProof",
-        documents.idProof
-      );
+      formData.append("idProof", documents.idProof);
 
-      documents.additionalDocuments.forEach(
-        (file) => {
-          formData.append(
-            "additionalDocuments",
-            file
-          );
-        }
-      );
+      documents.additionalDocuments.forEach((file) => {
+        formData.append("additionalDocuments", file);
+      });
 
-      await submitLawyerVerification(
-        formData
-      );
+      await submitLawyerVerification(formData);
 
-      toast.success(
-        "Verification submitted successfully"
-      );
+      toast.success("Verification submitted successfully");
 
       navigate("/lawyer/home", {
         replace: true,
       });
-
     } catch (err) {
-      toast.error(
-        err.response?.data?.message ||
-          "Verification failed"
-      );
+      toast.error(err.response?.data?.message || "Verification failed");
     } finally {
       setLoading(false);
     }
@@ -144,25 +151,17 @@ export default function Verification() {
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4">
       <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
-
         {/* HEADER */}
         <div className="bg-black text-white p-8">
-          <h1 className="text-3xl font-bold">
-            Lawyer Verification
-          </h1>
+          <h1 className="text-3xl font-bold">Lawyer Verification</h1>
 
           <p className="text-gray-300 mt-2">
-            Submit your professional details
-            for verification
+            Submit your professional details for verification
           </p>
         </div>
 
         {/* FORM */}
-        <form
-          onSubmit={handleSubmit}
-          className="p-8 space-y-8"
-        >
-
+        <form onSubmit={handleSubmit} className="p-8 space-y-8">
           {/* EXPERIENCE */}
           <div>
             <label className="block font-semibold mb-2">
@@ -182,9 +181,7 @@ export default function Verification() {
 
           {/* SPECIALIZATION */}
           <div>
-            <label className="block font-semibold mb-2">
-              Specialization
-            </label>
+            <label className="block font-semibold mb-2">Specialization</label>
 
             <input
               type="text"
@@ -197,85 +194,101 @@ export default function Verification() {
             />
 
             <p className="text-sm text-gray-500 mt-1">
-              Separate multiple specializations
-              using commas
+              Separate multiple specializations using commas
             </p>
           </div>
 
           {/* EDUCATION */}
           <div>
-            <h2 className="text-xl font-bold mb-4">
-              Education Details
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Education Details</h2>
 
-            <div className="grid md:grid-cols-2 gap-4">
-
-              <input
-                type="text"
-                name="degree"
-                value={form.education.degree}
-                onChange={handleChange}
-                placeholder="Degree"
-                className="border p-3 rounded-lg"
-                required
-              />
-
-              <input
-                type="text"
-                name="fieldOfStudy"
-                value={form.education.fieldOfStudy}
-                onChange={handleChange}
-                placeholder="Field of Study"
-                className="border p-3 rounded-lg"
-              />
-
-              <input
-                type="text"
-                name="university"
-                value={form.education.university}
-                onChange={handleChange}
-                placeholder="University"
-                className="border p-3 rounded-lg"
-                required
-              />
-
-              <input
-                type="number"
-                name="startYear"
-                value={form.education.startYear}
-                onChange={handleChange}
-                placeholder="Start Year"
-                className="border p-3 rounded-lg"
-              />
-
-              <input
-                type="number"
-                name="endYear"
-                value={form.education.endYear}
-                onChange={handleChange}
-                placeholder="End Year"
-                className="border p-3 rounded-lg"
-              />
-
-              <input
-                type="text"
-                name="grade"
-                value={form.education.grade}
-                onChange={handleChange}
-                placeholder="Grade / CGPA"
-                className="border p-3 rounded-lg"
-              />
+              <button
+                type="button"
+                onClick={addEducationField}
+                className="bg-black text-white px-4 py-2 rounded-lg"
+              >
+                + Add Education
+              </button>
             </div>
-          </div>
 
+            {form.education.map((edu, index) => (
+              <div key={index} className="border rounded-xl p-5 mb-5">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    name="degree"
+                    value={edu.degree}
+                    onChange={(e) => handleEducationChange(index, e)}
+                    placeholder="Degree"
+                    className="border p-3 rounded-lg"
+                    required
+                  />
+
+                  <input
+                    type="text"
+                    name="fieldOfStudy"
+                    value={edu.fieldOfStudy}
+                    onChange={(e) => handleEducationChange(index, e)}
+                    placeholder="Field of Study"
+                    className="border p-3 rounded-lg"
+                  />
+
+                  <input
+                    type="text"
+                    name="university"
+                    value={edu.university}
+                    onChange={(e) => handleEducationChange(index, e)}
+                    placeholder="University"
+                    className="border p-3 rounded-lg"
+                    required
+                  />
+
+                  <input
+                    type="number"
+                    name="startYear"
+                    value={edu.startYear}
+                    onChange={(e) => handleEducationChange(index, e)}
+                    placeholder="Start Year"
+                    className="border p-3 rounded-lg"
+                  />
+
+                  <input
+                    type="number"
+                    name="endYear"
+                    value={edu.endYear}
+                    onChange={(e) => handleEducationChange(index, e)}
+                    placeholder="End Year"
+                    className="border p-3 rounded-lg"
+                  />
+
+                  <input
+                    type="text"
+                    name="grade"
+                    value={edu.grade}
+                    onChange={(e) => handleEducationChange(index, e)}
+                    placeholder="Grade / CGPA"
+                    className="border p-3 rounded-lg"
+                  />
+                </div>
+
+                {form.education.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeEducationField(index)}
+                    className="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
           {/* DOCUMENTS */}
           <div>
-            <h2 className="text-xl font-bold mb-4">
-              Upload Documents
-            </h2>
+            <h2 className="text-xl font-bold mb-4">Upload Documents</h2>
 
             <div className="space-y-5">
-
               <div>
                 <label className="block mb-2 font-medium">
                   Bar Certificate
@@ -305,9 +318,7 @@ export default function Verification() {
               </div>
 
               <div>
-                <label className="block mb-2 font-medium">
-                  ID Proof
-                </label>
+                <label className="block mb-2 font-medium">ID Proof</label>
 
                 <input
                   type="file"
@@ -340,9 +351,7 @@ export default function Verification() {
             disabled={loading}
             className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800"
           >
-            {loading
-              ? "Submitting..."
-              : "Submit Verification"}
+            {loading ? "Submitting..." : "Submit Verification"}
           </button>
         </form>
       </div>

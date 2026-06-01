@@ -38,10 +38,12 @@ import LawyerLayout from "./pages/lawyer/LawyerLayout.jsx";
 import Dashboard from "./pages/lawyer/Dashboard.jsx";
 import Cases from "./pages/lawyer/Cases.jsx";
 import CasesDetails from "./pages/lawyer/CaseDetails.jsx";
+import NotificationHistory from "./pages/lawyer/NotificationHistory.jsx";
 
 // admin
 import AdminLogin from "./pages/admin/Login.jsx";
 import AdminHome from "./pages/admin/Home.jsx";
+import AdminVerificationLawyers from "./pages/admin/LawyerVerification.jsx";
 
 function App() {
   return (
@@ -77,36 +79,18 @@ function App() {
         <Route path="/lawyer/register" element={<LawyerRegister />} />
         <Route path="/lawyer/login" element={<LawyerLogin />} />
         <Route path="/lawyer/welcome" element={<LawyerWelcome />} />
-        <Route
-          path="/lawyer/complete-profile"
-          element={<LawyerCompleteProfile />}
-        />
+        <Route path="/lawyer/complete-profile" element={<LawyerCompleteProfile />} />
         <Route path="/lawyer/home" element={<LawyerHome />} />
         <Route path="/lawyer/verification" element={<LawyerVerification />} />
-        <Route
-          path="/lawyer/dashboard"
-          element={
-            <LawyerLayout>
-              {" "}
-              <Dashboard />{" "}
-            </LawyerLayout>
-          }
-        />
-        <Route
-          path="/lawyer/cases"
-          element={
-            <LawyerLayout>
-              {" "}
-              <Cases />{" "}
-            </LawyerLayout>
-          }
-        />
+        <Route path="/lawyer/dashboard"  element={  <LawyerLayout>  {" "}  <Dashboard />{" "} </LawyerLayout>} />
+        <Route path="/lawyer/cases" element={  <LawyerLayout>  {" "}  <Cases />{" "}  </LawyerLayout>  } />
         <Route path="/lawyer/cases/:id" element={<CasesDetails />} />
+        <Route path="/lawyer/notifications" element={<NotificationHistory />} />
 
         {/* admin */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/home" element={<AdminHome />} />
-
+        <Route path="/admin/lawyers/pending" element={<AdminVerificationLawyers />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route
           path="*"

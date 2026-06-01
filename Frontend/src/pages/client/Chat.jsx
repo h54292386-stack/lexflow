@@ -84,16 +84,36 @@ export default function Chat() {
 
         // OTHERWISE CREATE NEW CONVERSATION
         const res = await createConversation(currentUser._id, lawyerId);
+console.log("CREATE CONVERSATION RESPONSE", res);
+await createConversation(
+  currentUser._id,
+  lawyerId
+);
 
-        const newConversation = res.data;
+const data = await getUserConversations(
+  currentUser._id
+);
 
-        if (!newConversation?._id) return;
+const uniqueConversations = Array.from(
+  new Map(
+    (Array.isArray(data.data) ? data.data : []).map(
+      (c) => [c._id, c]
+    )
+  ).values()
+);
 
-        // ADD TO SIDEBAR
-        setConversations((prev) => [newConversation, ...prev]);
+setConversations(uniqueConversations);
 
-        // OPEN CHAT BOX
-        openConversation(newConversation);
+const createdConversation =
+  uniqueConversations.find((conv) =>
+    conv.participants.some(
+      (p) => getUserId(p) === String(lawyerId)
+    )
+  );
+
+if (createdConversation) {
+  openConversation(createdConversation);
+}
       } catch (err) {
         console.log("Conversation init error:", err);
       }
@@ -131,6 +151,8 @@ export default function Chat() {
 
   useEffect(() => {
     const handler = (message) => {
+          console.log("SOCKET MESSAGE:", message);
+
       setConversations((prev) =>
         prev.map((conv) => {
           if (conv._id !== message?.conversationId) {
@@ -178,6 +200,8 @@ export default function Chat() {
 
     return () => socketRef.current?.off("receiveMessage", handler);
   }, [activeConversation?._id, currentUser?._id]);
+
+
 
   useEffect(() => {
     const handler = () => {

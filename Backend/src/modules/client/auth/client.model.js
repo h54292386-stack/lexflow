@@ -133,6 +133,9 @@ const clientSchema = new mongoose.Schema(
         dateOfBirth: {
             type: Date
         },
+        occupation:{
+             type:String
+        },
 
         phone: {
             type: String,

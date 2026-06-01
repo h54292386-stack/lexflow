@@ -183,6 +183,11 @@ export const googleLoginLawyer = async (token) => {
   return res.data;
 };
 
+export const logoutLawyer = async () => {
+  const res = await api.delete("/lawyer/logout");
+  return res.data;
+};
+
 export const getLawyerProfile = async () => {
   const res = await api.get("/lawyer/details/profile");
 
@@ -240,6 +245,34 @@ export const loginAdmin = async (data) => {
   return res.data;
 };
 
+export const getPendingLawyers =
+  async () => {
+    const res = await api.get(
+      "/admin/lawyers/pending"
+    );
+
+    return res.data;
+  };
+
+export const approveLawyer =
+  async (lawyerId) => {
+    const res = await api.put(
+      `/admin/lawyers/${lawyerId}/approve`
+    );
+
+    return res.data;
+  };
+
+export const rejectLawyer =
+  async (lawyerId) => {
+    const res = await api.put(
+      `/admin/lawyers/${lawyerId}/reject`
+    );
+
+    return res.data;
+  };
+
+
 //payment
 
 export const createPaymentOrder =
@@ -267,5 +300,17 @@ export const verifyPayment = async (paymentData) => {
 
 export const getPaymentHistory = async () => {
   const { data } = await api.get("/payment/history");
-  return res.data.data;
+  return data;
 };
+
+export const getNotifications = () => api.get("/notifications");
+
+
+export const markNotificationRead = (id) =>  api.patch(`/notifications/${id}/read`);
+
+export const markAllNotificationsRead = async () => {
+  const res = await api.patch("/notifications/mark-all-read");
+  return res.data;
+};
+
+

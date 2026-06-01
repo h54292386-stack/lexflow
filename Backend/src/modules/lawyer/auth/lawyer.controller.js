@@ -230,8 +230,7 @@ export const loginLawyerController = asyncHandler(async (req, res) => {
 
 
 export const submitDocumentsController = asyncHandler(async (req, res) => {
-  const lawyerId = req.user._id;
-
+  const lawyerId = req.user.id;
   const lawyer = await submitLawyerDocuments(lawyerId, req.body);
 
   sendResponse(res, 200, true, "Documents submitted successfully", {
@@ -241,21 +240,16 @@ export const submitDocumentsController = asyncHandler(async (req, res) => {
 
 
 export const logoutLawyerController = asyncHandler(async (req, res) => {
-  if (!req.user) {
-    throw new AppError("User not authenticated", 401);
-  }
 
-  const lawyer = req.user;
-
-  lawyer.refreshToken = null;
-  await lawyer.save({ validateBeforeSave: false });
+  await Lawyer.updateOne(
+    { _id: req.user.id },
+    { $unset: { refreshToken: "" } }
+  );
 
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 0
-
+    sameSite: "strict"
   });
 
   sendResponse(res, 200, true, "Logged out successfully");

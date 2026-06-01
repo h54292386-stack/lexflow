@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaFolderOpen, FaUserTie, FaClock } from "react-icons/fa";
+import { FaFolderOpen, FaUserTie, FaClock,FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import {getClientCases} from "../../service/AuthService.js"
 import toast from "react-hot-toast";
@@ -34,6 +34,14 @@ const statusSteps = [
   return (
     
     <div className="min-h-screen bg-gray-100 p-8">
+       <button
+                        onClick={() => navigate("/home")}
+                        className="absolute top-6 left-6 flex items-center gap-2 text-gray-700 hover:text-black"
+                      >
+                       <FaArrowLeft className="w-4 h-4 text-gray-500 hover:text-black transition" />
+                      </button>
+                      <br/>
+                      <br/>
       {selectedCase && (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
     <div className="bg-white w-[380px] rounded-xl p-6 shadow-xl">

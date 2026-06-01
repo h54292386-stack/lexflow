@@ -49,12 +49,12 @@ function LawyerLogin() {
       setLoading(true);
 
       const res = await loginLawyer(formData);
+console.log("LOGIN RESPONSE:", res);
+     const { accessToken, lawyer } = res;
 
-      const { accessToken, user } = res;
+login(lawyer, accessToken);
 
-      login(user, accessToken);
-
-      toast.success("Lawyer login successful 🎉");
+      toast.success("Lawyer login successful ");
 
       navigate("/lawyer/home");
     } catch (err) {

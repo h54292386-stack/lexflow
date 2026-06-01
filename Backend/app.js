@@ -17,6 +17,9 @@ import clientprofileRoutes from "./src/modules/client/profile/profile.routes.js"
 import lawyerverificationRoutes from "./src/modules/lawyer/verification/verification.routes.js";
 import casesRoutes from "./src/modules/lawyer/cases/current.case.routes.js";
 import paymentRoutes from "./src/modules/payment/payment.routes.js";
+import adminLawyerRoutes from "./src/modules/admin/lawyerMangement/admin.lawyer.routes.js";
+import notificationRoutes from "./src/modules/notification/notification.route.js";
+
 
 const app = express();
 
@@ -55,7 +58,9 @@ app.use("/api/lawyer/verification",lawyerverificationRoutes)
 app.use("/api/lawyer/cases",casesRoutes)
 
 app.use("/api/admin",adminRoutes);
+app.use("/api/admin/lawyers", adminLawyerRoutes);
 
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use(errorMiddleware);
 
