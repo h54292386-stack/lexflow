@@ -27,6 +27,7 @@ export const errorMiddleware = (err, req, res,next) => {
         message = `${field} already exists`;
     }
 
+
     res.status(statusCode).json({
         success: false,
         message,

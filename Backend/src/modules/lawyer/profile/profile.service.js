@@ -22,16 +22,22 @@ export const updateLawyerProfileService = async (
   data
 ) => {
 
-  const allowedUpdates = [
-    "name",
-    "email",
-    "phone",
-    "alternatePhone",
-    "gender",
-    "dateOfBirth",
-    "officeAddress",
-    "profileImage",
-  ];
+const allowedUpdates = [
+  "name",
+  "email",
+  "phone",
+  "alternatePhone",
+  "gender",
+  "dateOfBirth",
+  "address",          
+  "officeAddress",   
+  "profileImage",
+  "about",
+  "education",
+  "specialization",
+  "experience",
+  "languages",
+];
 
   const filteredData = {};
 
@@ -73,9 +79,11 @@ export const updateLawyerProfileService = async (
     mergedData.officeAddress?.pinCode &&
     mergedData.officeAddress?.country;
 
-  if (isProfileComplete) {
-    filteredData.profileCompleted = true;
-  }
+if (isProfileComplete) {
+  filteredData.profileCompleted = true;
+} else {
+  filteredData.profileCompleted = false;
+}
 
   return await updateLawyerProfileRepo(
     lawyerId,

@@ -1,19 +1,18 @@
 import express from "express";
-
 import {
   getMessages,
   createOrGetConversation,
-  getUserConversations
-} from "./chat.controller.js";
+  getUserConversations,
+} from "../../client/chat/chat.controller.js";
+
 import { authenticateUser } from "../../../shared/middleware/auth.middleware.js";
 import { authorizeRoles } from "../../../shared/middleware/authorizeRoles.js";
 
 const router = express.Router();
 
 router.use(authenticateUser);
-router.use(authorizeRoles("client"));
+router.use(authorizeRoles("lawyer"));
 
-// CREATE/GET CONVERSATION
 router.post(
   "/conversation",
   createOrGetConversation
@@ -28,6 +27,5 @@ router.get(
   "/:conversationId",
   getMessages
 );
-
 
 export default router;

@@ -9,30 +9,29 @@ import {
 
 import { authenticateUser } from "../../../shared/middleware/auth.middleware.js";
 import { upload } from "../../../shared/utils/multer.js";
+import { authorizeRoles } from "../../../shared/middleware/authorizeRoles.js";
 
 const router = express.Router();
+router.use(authenticateUser);
+router.use(authorizeRoles("lawyer"));
 
 router.get(
   "/profile",
-  authenticateUser,
   getLawyerProfileController
 );
 
 router.put(
   "/profile",
-  authenticateUser,
   updateLawyerProfileController
 );
 
 router.put(
   "/change-password",
-  authenticateUser,
   changeLawyerPasswordController
 );
 
 router.put(
   "/profile/image",
-  authenticateUser,
   upload.single("image"),
   uploadLawyerProfileImageController
 );

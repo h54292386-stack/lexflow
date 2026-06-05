@@ -39,6 +39,9 @@ import Dashboard from "./pages/lawyer/Dashboard.jsx";
 import Cases from "./pages/lawyer/Cases.jsx";
 import CasesDetails from "./pages/lawyer/CaseDetails.jsx";
 import NotificationHistory from "./pages/lawyer/NotificationHistory.jsx";
+import LawyerProfile from "./pages/lawyer/LawyerProfile.jsx";
+import NewCaseRequests from "./pages/lawyer/NewCaseRequests.jsx";
+import LawyerChat from "./pages/lawyer/LawyerChat.jsx";
 
 // admin
 import AdminLogin from "./pages/admin/Login.jsx";
@@ -86,7 +89,10 @@ function App() {
         <Route path="/lawyer/cases" element={  <LawyerLayout>  {" "}  <Cases />{" "}  </LawyerLayout>  } />
         <Route path="/lawyer/cases/:id" element={<CasesDetails />} />
         <Route path="/lawyer/notifications" element={<NotificationHistory />} />
-
+        <Route path="/lawyer/Profile" element={<LawyerProfile />} />
+        <Route path="/lawyer/case-requests" element={<NewCaseRequests />} />
+        <Route path="/lawyer/chat/:clientId?" element={<LawyerChat />}/>
+        
         {/* admin */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/home" element={<AdminHome />} />

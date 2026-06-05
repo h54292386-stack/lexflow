@@ -1,5 +1,4 @@
 
-
 import Sidebar from "../../components/SideBar.jsx";
 
 export default function LawyerLayout({ children }) {

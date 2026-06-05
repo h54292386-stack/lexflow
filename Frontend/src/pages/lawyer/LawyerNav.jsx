@@ -245,19 +245,6 @@ export default function LawyerNavbar() {
                 <p className="text-xs text-gray-500 truncate">{user?.email}</p>
               </div>
 
-              <Link
-                to="/lawyer/profile"
-                className="block px-4 py-2 text-sm hover:bg-gray-100"
-              >
-                My Profile
-              </Link>
-              <Link
-                to="/change-password"
-                className="block px-4 py-2 text-sm hover:bg-gray-100"
-              >
-                Change Password
-              </Link>
-
               <button
                 onClick={handleLogout}
                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-500"

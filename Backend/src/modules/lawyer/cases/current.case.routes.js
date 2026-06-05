@@ -9,17 +9,16 @@ import {  authenticateUser } from "../../../shared/middleware/auth.middleware.js
 import { authorizeRoles } from "../../../shared/middleware/authorizeRoles.js"
 const router = express.Router();
 
+router.use(authenticateUser);
+router.use(authorizeRoles("lawyer"));
+
 router.get(
     "/",
-authenticateUser,
-  authorizeRoles("lawyer"),
     getLawyerCasesController
 );
 
 router.get(
     "/:id",
-authenticateUser,
-  authorizeRoles("lawyer"),
     getSingleCaseController
 );
 

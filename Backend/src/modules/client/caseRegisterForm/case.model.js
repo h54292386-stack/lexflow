@@ -162,8 +162,13 @@ const caseSchema = new mongoose.Schema(
                 },
                 status: {
                     type: String,
-                    enum: ["pending", "accepted", "rejected"],
-                    default: "pending"
+                    enum: [
+                        "new",
+                        "interested",
+                        "accepted",
+                        "declined"
+                    ],
+                    default: "new"
                 },
                 requestedAt: {
                     type: Date,
@@ -207,7 +212,8 @@ const caseSchema = new mongoose.Schema(
 
 caseSchema.index({ clientId: 1, createdAt: -1 });
 caseSchema.index({ assignedLawyer: 1, status: 1 });
-caseSchema.index({ requestedLawyer: 1, requestStatus: 1 });
-
+caseSchema.index({
+    "requestedLawyers.lawyerId": 1
+});
 const Case = mongoose.model("Case", caseSchema);
 export default Case;

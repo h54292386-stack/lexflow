@@ -40,7 +40,6 @@ setSocketData(
 io.use((socket, next) => {
   let token = socket.handshake.auth.token;
 
-  console.log("TOKEN RECEIVED:", token);
 
   if (!token) {
     return next(new Error("Unauthorized - No token"));
@@ -52,26 +51,17 @@ io.use((socket, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
 
-    console.log("DECODED:", decoded);
 
     socket.user = decoded;
     next();
   } catch (err) {
-    console.log("JWT ERROR:", err.message);
     next(new Error("Unauthorized - Invalid token"));
   }
 });
 
 io.on("connection", (socket) => {
 
-  console.log("User Connected:", socket.id);
   const userId = socket.user?.userId;
-
-  // if (userId) {
-  //   onlineUsers.set(userId, socket.id);
-
-  //   io.emit("onlineUsers", Array.from(onlineUsers.keys()));
-  // }
 
   if (userId) {
 
@@ -86,7 +76,6 @@ io.on("connection", (socket) => {
       Array.from(onlineUsers.keys())
     );
 
-    console.log("ONLINE USERS:", onlineUsers);
   }
 
   socket.on("joinConversation", (conversationId) => {
@@ -113,15 +102,14 @@ io.on("connection", (socket) => {
         !data?.messageId ||
         !data?.conversationId ||
         !data?.sender ||
+        !data?.receiver ||
+        !data?.senderModel ||
+        !data?.receiverModel ||
         !data?.text?.trim()
       ) {
-        console.log("VALIDATION FAILED");
 
         return;
       }
-
-      console.log("MESSAGE RECEIVED:", data);
-      console.log("BEFORE SAVE");
 
       const existing = await Message.findOne({
         messageId: data.messageId,
@@ -173,14 +161,39 @@ io.on("connection", (socket) => {
 
       const receiverType = receiver.userType;
 
-      if (receiverType === "Lawyer") {
-        await Conversation.findByIdAndUpdate(data.conversationId, {
-          $inc: { "unreadCount.lawyer": 1 },
-        });
-      } else {
-        await Conversation.findByIdAndUpdate(data.conversationId, {
-          $inc: { "unreadCount.client": 1 },
-        });
+      const receiverId =
+        receiver.userId.toString();
+
+      const receiverInsideRoom =
+        isUserInConversation(
+          receiverId,
+          data.conversationId
+        );
+
+      if (!receiverInsideRoom) {
+
+        if (receiverType === "Lawyer") {
+
+          await Conversation.findByIdAndUpdate(
+            data.conversationId,
+            {
+              $inc: {
+                "unreadCount.lawyer": 1,
+              },
+            }
+          );
+
+        } else {
+
+          await Conversation.findByIdAndUpdate(
+            data.conversationId,
+            {
+              $inc: {
+                "unreadCount.client": 1,
+              },
+            }
+          );
+        }
       }
 
       const populatedMessage =
@@ -264,6 +277,34 @@ io.on("connection", (socket) => {
     );
   });
 
+  const isUserInConversation = (
+    receiverId,
+    conversationId
+  ) => {
+
+    const receiverSockets =
+      onlineUsers.get(receiverId);
+
+    if (!receiverSockets) return false;
+
+    for (const socketId of receiverSockets) {
+
+      const socketInstance =
+        io.sockets.sockets.get(socketId);
+
+      if (
+        socketInstance &&
+        socketInstance.rooms.has(
+          conversationId
+        )
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   /* =========================
    CALL EVENTS
   ========================= */
@@ -344,16 +385,6 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     const userId = socket.user?.userId;
-
-    // if (userId) {
-    //   const storedSocketId = onlineUsers.get(userId);
-
-    //   if (storedSocketId === socket.id) {
-    //     onlineUsers.delete(userId);
-    //   }
-
-    //   io.emit("onlineUsers", Array.from(onlineUsers.keys()));
-    // }
 
     if (userId) {
 

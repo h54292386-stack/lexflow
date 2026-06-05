@@ -25,32 +25,6 @@ export const getMessagesRepo = async (
     .sort({ createdAt: 1 });
 };
 
-
-// FIND EXISTING CONVERSATION
-export const findConversationRepo = async (clientId, lawyerId) => {
-  return await Conversation.findOne({
-    participants: {
-      $all: [
-        {
-          $elemMatch: {
-            userId: clientId,
-            userType: "Client",
-          },
-        },
-        {
-          $elemMatch: {
-            userId: lawyerId,
-            userType: "Lawyer",
-          },
-        },
-      ],
-    },
-  });
-};
-
-
-
-
 // CREATE CONVERSATION
 export const createConversationRepo = async (
   data
@@ -58,37 +32,47 @@ export const createConversationRepo = async (
 
   return await Conversation.create(data);
 };
-
 export const getUserConversationsRepo = async (userId) => {
 
   const conversations = await Conversation.find({
     "participants.userId": userId,
   })
-    .populate("participants.userId")
     .populate("latestMessage")
     .sort({ updatedAt: -1 });
 
-  // MANUAL POPULATE
   for (const conv of conversations) {
 
     for (const participant of conv.participants) {
 
       if (participant.userType === "Client") {
 
-        participant.userId =
-          await Client.findById(participant.userId)
-            .select("name email profileImage");
+        const client = await Client.findById(
+          participant.userId
+        );
 
-      } else if (
-        participant.userType === "Lawyer"
-      ) {
+        participant.userId = client;
 
-        participant.userId =
-          await Lawyer.findById(participant.userId)
-            .select("name email profileImage");
+      } else if (participant.userType === "Lawyer") {
+
+        const lawyer = await Lawyer.findById(
+          participant.userId
+        );
+
+        participant.userId = lawyer;
       }
+
     }
   }
 
   return conversations;
+};
+
+
+export const findConversationByKeyRepo = async (
+  conversationKey
+) => {
+
+  return await Conversation.findOne({
+    conversationKey,
+  }).populate("latestMessage");
 };

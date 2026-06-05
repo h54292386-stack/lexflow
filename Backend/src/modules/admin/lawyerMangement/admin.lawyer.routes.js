@@ -13,27 +13,27 @@ import {
 import {
   requireAdmin
 } from "../../../shared/middleware/admin.middleware.js";
+import { authorizeRoles } from "../../../shared/middleware/authorizeRoles.js";
 
 
 const router = express.Router();
+router.use(authenticateUser);
+router.use(authorizeRoles("admin"));
 
 router.get(
   "/pending",
-  authenticateUser,
   requireAdmin,
   getPendingLawyersController
 );
 
 router.put(
   "/:id/approve",
-  authenticateUser,
   requireAdmin,
   approveLawyerController
 );
 
 router.put(
   "/:id/reject",
-  authenticateUser,
   requireAdmin,
   rejectLawyerController
 );

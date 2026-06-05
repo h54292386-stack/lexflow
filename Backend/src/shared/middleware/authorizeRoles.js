@@ -10,6 +10,8 @@ export const authorizeRoles = (...allowedRoles) => {
     }
 
     if (!allowedRoles.includes(userRole)) {
+      console.log("ROLE CHECK FAILED");
+
       const error = new Error("Access denied: insufficient permissions");
       error.statusCode = 403;
       return next(error);

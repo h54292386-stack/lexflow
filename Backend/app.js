@@ -19,7 +19,8 @@ import casesRoutes from "./src/modules/lawyer/cases/current.case.routes.js";
 import paymentRoutes from "./src/modules/payment/payment.routes.js";
 import adminLawyerRoutes from "./src/modules/admin/lawyerMangement/admin.lawyer.routes.js";
 import notificationRoutes from "./src/modules/notification/notification.route.js";
-
+import newCaseRoutes from "./src/modules/lawyer/newCase/newCase.routes.js";
+import lawyerChatRoutes from "./src/modules/lawyer/chat/chatRoutes.js";
 
 const app = express();
 
@@ -56,6 +57,8 @@ app.use("/api/lawyer",lawyerRoutes);
 app.use("/api/lawyer/details", lawyerprofileRoutes);
 app.use("/api/lawyer/verification",lawyerverificationRoutes)
 app.use("/api/lawyer/cases",casesRoutes)
+app.use("/api/lawyer/case-requests", newCaseRoutes);
+app.use("/api/lawyer/chat", lawyerChatRoutes);
 
 app.use("/api/admin",adminRoutes);
 app.use("/api/admin/lawyers", adminLawyerRoutes);

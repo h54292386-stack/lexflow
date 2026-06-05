@@ -46,15 +46,26 @@ function LawyerHome() {
             client trust, and access all lawyer features on the platform.
           </p>
 
-          <button
-            onClick={() => navigate("/lawyer/verification")}
-            className="mt-6 bg-indigo-700 px-6 py-2 rounded-md hover:bg-indigo-800 transition"
-          >
-            Verification from
-          </button>
+          <div className="mt-6">
+            {user?.verificationStatus === "approved" ? (
+              <button
+                onClick={() => navigate("/lawyer/dashboard")}
+                className="bg-green-700 px-6 py-2 rounded-md hover:bg-green-800 transition"
+              >
+                Go To Dashboard
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate("/lawyer/verification")}
+                className="bg-indigo-700 px-6 py-2 rounded-md hover:bg-indigo-800 transition"
+              >
+                Verification Form
+              </button>
+            )}
+          </div>
         </div>
       </section>
-      < GrowingPage/>
+      <GrowingPage />
     </>
   );
 }

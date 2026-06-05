@@ -1,11 +1,10 @@
 import {
   saveMessageRepo,
   getMessagesRepo,
-  findConversationRepo,
   createConversationRepo,
-  getUserConversationsRepo
+  getUserConversationsRepo,
+  findConversationByKeyRepo
 } from "./chat.repository.js";
-import Conversation from "./conversation.model.js"
 
 export const saveMessageService = async (
   data
@@ -29,6 +28,7 @@ export const getMessagesService = async (
 // CREATE OR GET CONVERSATION
 export const createOrGetConversationService =
   async (clientId, lawyerId) => {
+   
 
     const ids = [
       clientId.toString(),
@@ -36,16 +36,20 @@ export const createOrGetConversationService =
     ].sort();
 
     const conversationKey = ids.join("_");
-
     let conversation =
-      await Conversation.findOne({
-        conversationKey,
-      })
-        .populate("participants.userId")
-        .populate("latestMessage");
+      await findConversationByKeyRepo(
+        conversationKey
+      );
+      
 
     if (conversation) {
-      return conversation;
+
+      const conversations =
+        await getUserConversationsRepo(clientId);
+
+      return conversations.find(
+        (c) => c._id.toString() === conversation._id.toString()
+      );
     }
 
     const newConversation =
@@ -65,16 +69,17 @@ export const createOrGetConversationService =
         ],
       });
 
-    conversation = await Conversation.findById(
-      newConversation._id
-    )
-      .populate("participants.userId")
-      .populate("latestMessage");
+    const conversations =
+      await getUserConversationsRepo(clientId);
 
-    return conversation;
+    return conversations.find(
+      (c) =>
+        c._id.toString() ===
+        newConversation._id.toString()
+    );
   };
 
-  export const getUserConversationsService =
+export const getUserConversationsService =
   async (userId) => {
 
     return await getUserConversationsRepo(

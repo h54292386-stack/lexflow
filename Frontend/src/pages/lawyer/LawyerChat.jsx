@@ -1,9 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { connectSocket, getSocket } from "../../socket.js";
 import {
-  getMessages,
-  getUserConversations,
-  createConversation,
+  getLawyerMessages,
+  getLawyerConversations,
+  createLawyerConversation,
 } from "../../service/AuthService.js";
 import { useParams } from "react-router-dom";
 import ChatSidebar from "../../components/ChatSideBar.jsx";
@@ -42,7 +42,7 @@ export default function Chat() {
   const socketRef = useRef(null);
 
   const bottomRef = useRef(null);
-  const { lawyerId } = useParams();
+  const { clientId } = useParams();
 
   const normalizeSenderId = (sender) => {
     if (!sender) return null;
@@ -68,12 +68,12 @@ export default function Chat() {
     if (!conversationsLoaded) return;
 
     const initConversation = async () => {
-      if (!lawyerId || !currentUser?._id) return;
+      if (!clientId || !currentUser?._id) return;
 
       try {
         // CHECK EXISTING CONVERSATION
         const existingConversation = conversations.find((conv) =>
-          conv.participants.some((p) => getUserId(p) === String(lawyerId)),
+          conv.participants.some((p) => getUserId(p) === String(clientId)),
         );
 
         // IF EXISTS -> OPEN IT
@@ -83,10 +83,11 @@ export default function Chat() {
         }
 
         // OTHERWISE CREATE NEW CONVERSATION
-        const res = await createConversation(currentUser._id, lawyerId);
+        const res = await createLawyerConversation(clientId, currentUser._id);
 console.log("CREATE CONVERSATION RESPONSE", res);
 
-const data = await getUserConversations(
+
+const data = await getLawyerConversations(
   currentUser._id
 );
 
@@ -103,7 +104,7 @@ setConversations(uniqueConversations);
 const createdConversation =
   uniqueConversations.find((conv) =>
     conv.participants.some(
-      (p) => getUserId(p) === String(lawyerId)
+      (p) => getUserId(p) === String(clientId)
     )
   );
 
@@ -116,7 +117,7 @@ if (createdConversation) {
     };
 
     initConversation();
-  }, [lawyerId, currentUser?._id, conversationsLoaded]);
+  }, [clientId, currentUser?._id, conversationsLoaded]);
 
   if (!currentUser?._id) {
     return <div>Invalid user</div>;
@@ -127,7 +128,7 @@ if (createdConversation) {
 
     const load = async () => {
       try {
-        const data = await getUserConversations(currentUser._id);
+        const data = await getLawyerConversations(currentUser._id);
 
         const uniqueConversations = Array.from(
           new Map(
@@ -277,7 +278,7 @@ if (createdConversation) {
     socketRef.current?.emit("joinConversation", conv._id);
 
     try {
-      const res = await getMessages(conv._id);
+      const res = await getLawyerMessages(conv._id);
 
       const msgs = Array.isArray(res.data) ? res.data : [];
 
@@ -386,6 +387,16 @@ if (createdConversation) {
     setText("");
     socketRef.current?.emit("stopTyping", activeConversation._id);
   };
+
+  console.log(
+  "ACTIVE CONVERSATION:",
+  JSON.stringify(activeConversation, null, 2)
+);
+
+console.log(
+  "PARTICIPANTS:",
+  activeConversation?.participants
+);
 
   const activeParticipant = activeConversation?.participants?.find((p) => {
     const participantId = String(p?.userId?._id || p?.userId?.id || p?.userId);

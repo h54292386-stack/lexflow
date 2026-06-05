@@ -316,6 +316,15 @@ const lawyerSchema = new mongoose.Schema(
             type: Number
         },
 
+        about: {
+            type: String,
+            maxlength: 1000,
+            trim: true
+
+        },
+        languages: [{
+            type: String
+        }],
 
         rating: {
             type: Number,
@@ -362,7 +371,7 @@ lawyerSchema.pre("save", async function () {
 
     this.password = await bcrypt.hash(this.password, 10);
 
-  
+
 });
 
 const Lawyer = mongoose.model("Lawyer", lawyerSchema);

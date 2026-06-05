@@ -234,8 +234,49 @@ export const submitLawyerVerification = async (formData) => {
 
 };
 
+export const getLawyerCaseRequests = async () => {
+  const response = await api.get( "/lawyer/case-requests/requested");
+
+  return response.data;
+};
+
+export const acceptCaseRequest = async (caseId) => {
+  const response = await api.put( `/lawyer/case-requests/${caseId}/accept`);
+
+  return response.data;
+};
+
+export const showInterestInCase = async ( caseId) => {
+  const response = await api.put(`/lawyer/case-requests/${caseId}/interest`);
+
+  return response.data;
+};
+
+export const declineCaseRequest = async (caseId) => {
+  const response = await api.put(`/lawyer/case-requests/${caseId}/decline` );
+
+  return response.data;
+};
 
 
+export const createLawyerConversation = async (clientId, lawyerId) => {
+
+  const res = await api.post("/lawyer/chat/conversation", { clientId, lawyerId, });
+
+  return res.data;
+};
+
+export const getLawyerMessages = async (conversationId) => {
+  const res = await api.get(`/lawyer/chat/${conversationId}`);
+
+  return res.data;
+};
+
+export const getLawyerConversations = async (userId) => {
+  const res = await api.get(`/lawyer/chat/conversations/${userId}`);
+
+  return res.data;
+};
 
 // admin
 
