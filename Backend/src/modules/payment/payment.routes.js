@@ -1,7 +1,7 @@
 import express from "express";
 
 import {
-  createOrderController,  verifyPaymentController,  getClientPaymentsController,} from "./payment.controller.js";
+  createOrderController,  verifyPaymentController,  getClientPaymentsController,getPaymentByIdController, downloadReceiptController, getCasePaymentsController} from "./payment.controller.js";
 
 import {authenticateUser,} from "../../shared/middleware/auth.middleware.js";
 
@@ -23,5 +23,23 @@ router.get(
   "/history",
   authenticateUser,
   getClientPaymentsController
+);
+
+router.get(
+  "/:paymentId",
+  authenticateUser,
+  getPaymentByIdController
+);
+
+router.patch(
+  "/:paymentId/download-receipt",
+  authenticateUser,
+  downloadReceiptController
+);
+
+router.get(
+  "/case/:caseId",
+  authenticateUser,
+  getCasePaymentsController
 );
 export default router;

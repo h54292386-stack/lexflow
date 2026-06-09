@@ -7,7 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
  const [user, setUser] = useState(() => {
   try {
-    const savedUser = localStorage.getItem("user");
+    const savedUser = sessionStorage.getItem("user");
 
     if (!savedUser || savedUser === "undefined") {
       return null;
@@ -16,9 +16,9 @@ export const AuthProvider = ({ children }) => {
     return JSON.parse(savedUser);
 
   } catch (error) {
-    console.error("Invalid user data in localStorage");
+    console.error("Invalid user data in sessionStorage");
 
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
 
     return null;
   }
@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = sessionStorage.getItem("accessToken");
 
     if (!token) {
       setUser(null);
@@ -41,9 +41,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
 const login = (userData, token) => {
-  localStorage.setItem("accessToken", token);
-  localStorage.setItem("user", JSON.stringify(userData));
-  localStorage.setItem("role", userData.role);  // ← ADD THIS LINE
+  sessionStorage.setItem("accessToken", token);
+  sessionStorage.setItem("user", JSON.stringify(userData));
+  sessionStorage.setItem("role", userData.role);  // ← ADD THIS LINE
 
   setUser(userData);
 
@@ -52,9 +52,10 @@ const login = (userData, token) => {
 };
 
  const logout = () => {
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("user");
-  localStorage.removeItem("caseDraft");
+  sessionStorage.removeItem("accessToken");
+  sessionStorage.removeItem("user");
+  sessionStorage.removeItem("caseDraft");
+  sessionStorage.removeItem("role");
 
 disconnectSocket();
 setSocket(null);

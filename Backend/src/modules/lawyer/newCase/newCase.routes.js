@@ -1,6 +1,6 @@
 import express from "express";
 import { authenticateUser } from "../../../shared/middleware/auth.middleware.js";
-import { getRequestedCases, acceptCaseRequest, showInterest, declineCase } from "./newCase.controller.js";
+import { getRequestedCases, acceptCaseRequest, showInterest, declineCase ,  submitProposal} from "./newCase.controller.js";
 import { authorizeRoles } from "../../../shared/middleware/authorizeRoles.js";
 
 const router = express.Router();
@@ -17,6 +17,10 @@ router.put(
   acceptCaseRequest
 );
 
+router.post(
+  "/:caseId/proposal",
+  submitProposal
+);
 
 router.put(
   "/:caseId/interest",

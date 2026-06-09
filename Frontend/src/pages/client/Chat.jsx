@@ -13,10 +13,12 @@ import chat1 from "../../assets/chat1..jpg";
 import EmojiPicker from "emoji-picker-react";
 import { Smile } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
-import {  FaPhoneAlt, FaVideo } from "react-icons/fa";
+import { FaPhoneAlt, FaVideo } from "react-icons/fa";
+import useWebRTC from "../../components/VideoCall/useWebRTC.js";
+import VideoCall from "../../components/VideoCall/VideoCall.jsx";
 
 export default function Chat() {
-  const rawUser = JSON.parse(localStorage.getItem("user"));
+  const rawUser = JSON.parse(sessionStorage.getItem("user"));
 
   const currentUser = rawUser
     ? {
@@ -37,12 +39,26 @@ export default function Chat() {
   const [conversationsLoaded, setConversationsLoaded] = useState(false);
 
   const [incomingCall, setIncomingCall] = useState(null);
-
   const unreadKey = currentUser?.role === "client" ? "client" : "lawyer";
   const socketRef = useRef(null);
 
   const bottomRef = useRef(null);
+  const isCallAcceptedRef = useRef(false);
   const { lawyerId } = useParams();
+
+  const {
+    peerConnection,
+    localVideoRef,
+    remoteVideoRef,
+    startLocalMedia,
+    createPeerConnection,
+    createAnswer,
+    endCall,
+  } = useWebRTC();
+
+  const [showVideoCall, setShowVideoCall] = useState(false);
+
+  const [callPartnerId, setCallPartnerId] = useState(null);
 
   const normalizeSenderId = (sender) => {
     if (!sender) return null;
@@ -51,7 +67,7 @@ export default function Chat() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = sessionStorage.getItem("accessToken");
 
     if (!token) return;
 
@@ -84,32 +100,25 @@ export default function Chat() {
 
         // OTHERWISE CREATE NEW CONVERSATION
         const res = await createConversation(currentUser._id, lawyerId);
-console.log("CREATE CONVERSATION RESPONSE", res);
+        console.log("CREATE CONVERSATION RESPONSE", res);
 
-const data = await getUserConversations(
-  currentUser._id
-);
+        const data = await getUserConversations(currentUser._id);
 
-const uniqueConversations = Array.from(
-  new Map(
-    (Array.isArray(data.data) ? data.data : []).map(
-      (c) => [c._id, c]
-    )
-  ).values()
-);
+        const uniqueConversations = Array.from(
+          new Map(
+            (Array.isArray(data.data) ? data.data : []).map((c) => [c._id, c]),
+          ).values(),
+        );
 
-setConversations(uniqueConversations);
+        setConversations(uniqueConversations);
 
-const createdConversation =
-  uniqueConversations.find((conv) =>
-    conv.participants.some(
-      (p) => getUserId(p) === String(lawyerId)
-    )
-  );
+        const createdConversation = uniqueConversations.find((conv) =>
+          conv.participants.some((p) => getUserId(p) === String(lawyerId)),
+        );
 
-if (createdConversation) {
-  openConversation(createdConversation);
-}
+        if (createdConversation) {
+          openConversation(createdConversation);
+        }
       } catch (err) {
         console.log("Conversation init error:", err);
       }
@@ -147,7 +156,7 @@ if (createdConversation) {
 
   useEffect(() => {
     const handler = (message) => {
-          console.log("SOCKET MESSAGE:", message);
+      console.log("SOCKET MESSAGE:", message);
 
       setConversations((prev) =>
         prev.map((conv) => {
@@ -196,8 +205,6 @@ if (createdConversation) {
 
     return () => socketRef.current?.off("receiveMessage", handler);
   }, [activeConversation?._id, currentUser?._id]);
-
-
 
   useEffect(() => {
     const handler = () => {
@@ -328,8 +335,71 @@ if (createdConversation) {
 
     socket.on("incoming-call", handleIncomingCall);
 
+    socket.on("call-rejected", () => {
+      setShowVideoCall(false);
+      setCallPartnerId(null);
+      setIncomingCall(null);
+      endCall?.(); // optional if your hook supports cleanup
+      // optional: toast "Call was rejected"
+    });
+
+    socket.on("call-ended", () => {
+      endCall?.();
+      setShowVideoCall(false);
+      setCallPartnerId(null);
+      setIncomingCall(null);
+      // optional: toast "Call ended"
+    });
+
     return () => {
       socket.off("incoming-call", handleIncomingCall);
+      socket.off("call-rejected");
+      socket.off("call-ended");
+    };
+  }, []);
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    if (!socket) return;
+
+    socket.on("webrtc-offer", async ({ from, offer }) => {
+      console.log("OFFER RECEIVED");
+
+      await startLocalMedia();
+
+      createPeerConnection(from);
+
+      const answer = await createAnswer(offer, from);
+
+      socket.emit("webrtc-answer", {
+        to: from,
+        answer,
+      });
+    });
+
+    socket.on("webrtc-answer", async ({ answer }) => {
+      await peerConnection.current.setRemoteDescription(
+        new RTCSessionDescription(answer),
+      );
+    });
+
+    socket.on("ice-candidate", async ({ candidate }) => {
+      try {
+        if (candidate && peerConnection.current) {
+          await peerConnection.current.addIceCandidate(
+            new RTCIceCandidate(candidate),
+          );
+        }
+      } catch (error) {
+        console.log("ICE Candidate Error:", error);
+      }
+    });
+
+    return () => {
+      socket.off("webrtc-offer");
+      socket.off("webrtc-answer");
+      socket.off("ice-candidate");
     };
   }, []);
 
@@ -415,27 +485,33 @@ if (createdConversation) {
 
   const receiverId = getUserId(callReceiver);
 
-  const handleCall = (callType) => {
-    if (!activeConversation) return;
-
-    if (!receiverId) {
-      console.log("NO RECEIVER");
-      return;
-    }
+  const handleCall = async (callType) => {
+    if (!activeConversation || !receiverId) return;
 
     const socket = getSocket();
+    if (!socket?.connected) return;
 
-if (!socket?.connected) {
-  console.log("Socket not connected");
-  return;
-}
+    const stream = await startLocalMedia();
+    if (!stream) return;
+
+    const pc = createPeerConnection(receiverId);
+
+    setCallPartnerId(receiverId);
+    setShowVideoCall(true);
+
     socket.emit("call-user", {
       to: receiverId,
       from: currentUser._id,
       callType,
     });
 
-    console.log("CALL STARTED:", callType);
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+
+    socket.emit("webrtc-offer", {
+      to: receiverId,
+      offer,
+    });
   };
 
   const rejectCall = () => {
@@ -445,15 +521,20 @@ if (!socket?.connected) {
       to: incomingCall.from,
     });
 
+    isCallAcceptedRef.current = false;
     setIncomingCall(null);
   };
 
-  const acceptCall = () => {
-    console.log("CALL ACCEPTED");
+  const acceptCall = async () => {
+    const stream = await startLocalMedia();
+    if (!stream) return;
 
+    isCallAcceptedRef.current = true;
+
+    setCallPartnerId(incomingCall.from);
+    setShowVideoCall(true);
     setIncomingCall(null);
   };
-
   return (
     <div className="flex h-screen bg-gray-100">
       <ChatSidebar
@@ -519,19 +600,11 @@ if (!socket?.connected) {
 
             {/* RIGHT SIDE */}
             <div className="flex gap-4">
-              
-
-              <button
-                onClick={() => handleCall("video")}
-                className=" text-lg"
-              >
+              <button onClick={() => handleCall("video")} className=" text-lg">
                 <FaVideo />
               </button>
-              <button
-                onClick={() => handleCall("audio")}
-                className=" text-lg"
-              >
-                < FaPhoneAlt />
+              <button onClick={() => handleCall("audio")} className=" text-lg">
+                <FaPhoneAlt />
               </button>
             </div>
           </div>
@@ -703,6 +776,13 @@ if (!socket?.connected) {
             </div>
           </div>
         </div>
+      )}
+      {showVideoCall && (
+        <VideoCall
+          localVideoRef={localVideoRef}
+          remoteVideoRef={remoteVideoRef}
+          onEndCall={() => { endCall(); setShowVideoCall(false); setCallPartnerId(null); }}
+        />
       )}
     </div>
   );

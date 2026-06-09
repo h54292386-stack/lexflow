@@ -3,8 +3,11 @@ import { useEffect, useState } from "react";
 import { getPaymentHistory } from "../../service/AuthService.js";
 
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+
 
 export default function PaymentHistoryPage() {
+  const navigate = useNavigate();
   const [payments, setPayments] = useState([]);
 
   const [loading, setLoading] = useState(true);
@@ -17,7 +20,9 @@ export default function PaymentHistoryPage() {
     try {
       const data = await getPaymentHistory();
 
-      setPayments(data || []);
+      console.log("PAYMENT HISTORY API:", data);
+
+      setPayments(data.data || []);
     } catch (error) {
       console.log(error);
       toast.error("Failed to load payments");
@@ -26,6 +31,21 @@ export default function PaymentHistoryPage() {
       setLoading(false);
     }
   };
+
+  const groupedPayments = payments.reduce((groups, payment) => {
+    const monthYear = new Date(payment.createdAt).toLocaleString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+
+    if (!groups[monthYear]) {
+      groups[monthYear] = [];
+    }
+
+    groups[monthYear].push(payment);
+
+    return groups;
+  }, {});
 
   if (loading) {
     return (
@@ -43,32 +63,9 @@ export default function PaymentHistoryPage() {
   }
 
   return (
-    <div
-      className="
-        min-h-screen
-        bg-gray-100
-        p-6
-      "
-    >
-      <div
-        className="
-          max-w-5xl
-          mx-auto
-          bg-white
-          rounded-2xl
-          shadow-lg
-          p-8
-        "
-      >
-        <h1
-          className="
-            text-3xl
-            font-bold
-            mb-8
-          "
-        >
-          Payment History
-        </h1>
+    <div className="min-h-screen bg-gray-100 p-6 ">
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-8">
+        <h1 className="text-3xl font-bold mb-8">Payment History</h1>
 
         {payments.length === 0 ? (
           <div
@@ -82,78 +79,72 @@ export default function PaymentHistoryPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {payments.map((payment) => (
-              <div
-                key={payment._id}
-                className="
-                  border
-                  rounded-xl
-                  p-5
-                  flex
-                  items-center
-                  justify-between
-                "
-              >
-                {/* LEFT */}
-                <div className="space-y-1">
-                  <p
-                    className="
-                      font-semibold
-                      text-lg
-                    "
-                  >
-                    ₹{payment.amount}
-                  </p>
+            {Object.entries(groupedPayments).map(([month, monthPayments]) => (
+              <div key={month} className="mb-8">
+                {/* MONTH HEADER */}
 
-                  <p
-                    className="
-                      text-sm
-                      text-gray-500
-                    "
-                  >
-                    Order ID: {payment.razorpayOrderId}
-                  </p>
+                <h2 className="text-xl font-bold text-gray-700 mb-4 border-b pb-2">
+                  {month}
+                </h2>
 
-                  <p
-                    className="
-                      text-sm
-                      text-gray-500
-                    "
-                  >
-                    Payment ID: {payment.razorpayPaymentId || "Pending"}
-                  </p>
+                <div className="space-y-3">
+                  {monthPayments.map((payment) => (
+                    <div
+                      key={payment._id}
+                        onClick={() => navigate(`/payments/${payment._id}`)}
+                      className="
+    bg-white
+    border
+    rounded-xl
+    p-4
+    flex
+    justify-between
+    items-start
+    hover:shadow-md
+    transition
+  "
+                    >
+                      {/* LEFT */}
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={
+                            payment.lawyer?.profileImage ||
+                            "https://ui-avatars.com/api/?name=Lawyer"
+                          }
+                          alt=""
+                          className=" w-12 h-12 rounded-full object-cover"
+                        />
 
-                  <p
-                    className="
-                      text-sm
-                      text-gray-500
-                    "
-                  >
-                    {new Date(payment.createdAt).toLocaleString()}
-                  </p>
-                </div>
+                        <div>
+                          <h3 className="font-semibold">
+                            {payment.lawyer?.name || "Lawyer"}
+                          </h3>
 
-                {/* RIGHT */}
-                <div>
-                  <span
-                    className={`
-                      px-4
-                      py-2
-                      rounded-full
-                      text-sm
-                      font-medium
+                          <p className="text-xs text-gray-400">
+                            {new Date(payment.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
 
-                      ${
-                        payment.status === "paid"
-                          ? "bg-green-100 text-green-700"
-                          : payment.status === "failed"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
-                      }
-                    `}
-                  >
-                    {payment.status}
-                  </span>
+                      <div className="text-right">
+                        <p className="font-bold text-lg">₹{payment.amount}</p>
+
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full
+                              ${
+                                payment.status === "paid"
+                                  ? "bg-green-100 text-green-700"
+                                  : payment.status === "failed"
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-yellow-100 text-yellow-700"
+                              }
+                            `}
+                        >
+                          {payment.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}

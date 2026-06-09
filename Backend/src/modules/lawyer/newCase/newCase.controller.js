@@ -1,4 +1,4 @@
-import { getRequestedCasesService ,acceptCaseRequestService , showInterestService, declineCaseService } from "./newCase.service.js";
+import { getRequestedCasesService  , showInterestService, declineCaseService,  submitProposalService} from "./newCase.service.js";
 import { sendResponse } from "../../../shared/utils/response.js";
 import { asyncHandler } from "../../../shared/middleware/asyncHandler.js";
 
@@ -22,6 +22,34 @@ export const getRequestedCases = asyncHandler(
     );
   }
 );
+
+export const submitProposal =
+  asyncHandler(async (req, res) => {
+    const {
+      professionalFee,
+      estimatedDuration,
+      notes,
+    } = req.body;
+
+    const data =
+      await submitProposalService(
+        req.params.caseId,
+        req.user.id,
+        {
+          professionalFee,
+          estimatedDuration,
+          notes,
+        }
+      );
+
+    return sendResponse(
+      res,
+      200,
+      true,
+      "Proposal submitted successfully",
+      data
+    );
+  });
 
 export const acceptCaseRequest = asyncHandler(
   async (req, res) => {

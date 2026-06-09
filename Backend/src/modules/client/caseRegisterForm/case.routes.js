@@ -1,5 +1,5 @@
 import express from "express";
-import { createCase, updateCaseDetails, uploadDocuments, requestLawyer, getDraftCase, getClientCases, getCaseById, deleteCaseDoc } from "./case.controller.js";
+import { createCase, updateCaseDetails, uploadDocuments, requestLawyer, getDraftCase, getClientCases, getCaseById, deleteCaseDoc, getCaseProposals, selectProposal } from "./case.controller.js";
 import { authenticateUser } from "../../../shared/middleware/auth.middleware.js";
 import { upload } from "../../../shared/utils/multer.js";
 import { authorizeRoles } from "../../../shared/middleware/authorizeRoles.js";
@@ -20,9 +20,21 @@ router.post(
   uploadDocuments
 );
 router.post("/request/:caseId", requestLawyer);
+
 router.get("/:caseId", getCaseById);
+
 router.delete(
   "/:caseId/document/:docId",
   deleteCaseDoc
+);
+
+router.get(
+  "/:caseId/proposals",
+  getCaseProposals
+);
+
+router.put(
+  "/:caseId/proposals/:requestId/select",
+  selectProposal
 );
 export default router;

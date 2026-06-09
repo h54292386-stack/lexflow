@@ -7,6 +7,8 @@ import {
   FaMapMarkerAlt,
   FaExclamationCircle,
   FaFileAlt,
+  FaReceipt,
+  FaDownload,
 } from "react-icons/fa";
 
 import {
@@ -14,6 +16,7 @@ import {
   updateCaseDetails,
   uploadCaseDocuments,
   deleteCaseDoc,
+  getCasePayments,
 } from "../../service/AuthService";
 import toast from "react-hot-toast";
 
@@ -31,10 +34,12 @@ export default function CaseDetails() {
   const [documentName, setDocumentName] = useState("");
   const [documentType, setDocumentType] = useState("");
   const [saving, setSaving] = useState(false);
+  const [payment, setPayment] = useState(null);
 
   useEffect(() => {
     if (caseId) {
       fetchCaseDetails();
+      fetchCasePayments();
     }
   }, [caseId]);
 
@@ -47,6 +52,16 @@ export default function CaseDetails() {
       console.log(err);
     } finally {
       setLoading(false); // ✅ THIS WAS MISSING
+    }
+  };
+
+  const fetchCasePayments = async () => {
+    try {
+      const res = await getCasePayments(caseId);
+
+      setPayment(res.data || []);
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -794,20 +809,12 @@ export default function CaseDetails() {
                       >
                         View Profile
                       </button>
-
-                      {request.status === "accepted" && (
+                      {request.proposal?.proposedAt && (
                         <button
-                          className="bg-black text-white px-4 py-2 rounded-lg text-sm"
-                        onClick={() =>
-  navigate(`/consultation/${caseId}/${lawyer.id}`, {
-    state: {
-      lawyerName: lawyer.name,
-      caseName: caseData.caseDetails?.caseName,
-    },
-  })
-}
+                          onClick={() => navigate(`/case/${caseId}/proposals`)}
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg"
                         >
-                          Consultation 
+                          View Proposals
                         </button>
                       )}
                     </div>
@@ -817,6 +824,93 @@ export default function CaseDetails() {
             </div>
           )}
         </div>
+
+     {/* PAYMENT DETAILS */}
+<div className="border rounded-xl p-6 mt-6">
+  <div className="flex items-center justify-between mb-5">
+    <div>
+      <h2 className="text-xl font-semibold">
+        Professional Fee Payment
+      </h2>
+
+      <p className="text-sm text-gray-500">
+        Payment made for this case
+      </p>
+    </div>
+  </div>
+
+  {payment ? (
+    <div className="border rounded-xl p-5 bg-gray-50">
+      <div className="grid md:grid-cols-2 gap-4">
+
+        <div>
+          <p className="text-sm text-gray-500">
+            Lawyer
+          </p>
+
+          <p className="font-medium">
+            {payment.lawyer?.name}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-sm text-gray-500">
+            Amount Paid
+          </p>
+
+          <p className="font-medium">
+            ₹{payment.amount}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-sm text-gray-500">
+            Receipt Number
+          </p>
+
+          <p className="font-medium">
+            {payment.receipt?.receiptNumber}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-sm text-gray-500">
+            Payment Date
+          </p>
+
+          <p className="font-medium">
+            {new Date(
+              payment.createdAt
+            ).toLocaleDateString()}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-sm text-gray-500">
+            Payment Status
+          </p>
+
+          <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm">
+            {payment.status}
+          </span>
+        </div>
+
+      </div>
+
+      <button
+                               onClick={() => navigate(`/payments/${payment._id}`)}
+
+        className="mt-5 bg-black text-white px-5 py-2 rounded-lg"
+      >
+        View Receipt
+      </button>
+    </div>
+  ) : (
+    <div className="border rounded-lg p-6 text-center text-gray-500">
+      No payment found for this case.
+    </div>
+  )}
+</div>
       </div>
     </div>
   );

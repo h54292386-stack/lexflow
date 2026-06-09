@@ -1,40 +1,64 @@
 import crypto from "crypto";
 import { razorpayInstance } from "../../config/razorpay.js";
-
+import Payment from "./payment.model.js";
+import Case from "../client/caseRegisterForm/case.model.js";
 import {
-  createPaymentRepository,  updatePaymentRepository,
+    createPaymentRepository, updatePaymentRepository,generateReceiptRepository
 
 } from "./payment.repository.js";
 
 
 export const createOrderService =
-  async (
-    clientId,
-    amount
-  ) => {
+    async (
+        clientId,
+        paymentData
+    ) => {
 
-    const options = {
-      amount: amount * 100,
-      currency: "INR",
-      receipt: `receipt_${Date.now()}`,
+        const {
+            lawyerFee,
+            adminFee,
+            totalAmount,
+            lawyerId,
+            caseId,
+        } = paymentData;
+
+
+        const options = {
+            amount: totalAmount * 100,
+            currency: "INR",
+            receipt: `receipt_${Date.now()}`,
+        };
+
+        const order =
+            await razorpayInstance.orders.create(
+                options
+            );
+
+        await createPaymentRepository({
+            client: clientId,
+
+            lawyer: lawyerId,
+
+            case: caseId,
+
+            paymentType: "professional_fee",
+
+            amount: totalAmount,
+
+            commissionAmount: adminFee,
+
+            lawyerAmount: lawyerFee,
+
+            razorpayOrderId: order.id,
+
+            status: "created",
+
+        });
+
+        return order;
     };
 
-    const order =
-      await razorpayInstance.orders.create(
-        options
-      );
-
-    await createPaymentRepository({
-      client: clientId,
-      amount,
-      razorpayOrderId: order.id,
-      status: "created",
-    });
-
-    return order;
-  };
-
-  export const verifyPaymentService =
+export const verifyPaymentService =
     async ({
         razorpay_order_id,
         razorpay_payment_id,
@@ -76,6 +100,9 @@ export const createOrderService =
         }
 
         // UPDATE PAYMENT
+          const receiptNumber =
+            `LF-${Date.now()}`;
+
         const payment =
             await updatePaymentRepository(
                 razorpay_order_id,
@@ -87,8 +114,42 @@ export const createOrderService =
                         razorpay_signature,
 
                     status: "paid",
+
+                    lawyerPayoutStatus:
+                        "pending",
+
+                    receipt: {
+                        receiptNumber,
+
+                        generatedAt:
+                            new Date()
+                    }
                 }
             );
+            await Case.findByIdAndUpdate(
+  payment.case,
+  {
+    "professionalPayment.status":
+      "success",
+
+    "professionalPayment.paid":
+      true,
+
+    "professionalPayment.paidAt":
+      new Date(),
+
+    status: "assigned",
+
+    $push: {
+      timeline: {
+        action:
+          "professional_fee_paid",
+      },
+    },
+  }
+);
 
         return payment;
     };
+
+ 

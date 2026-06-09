@@ -9,9 +9,10 @@ export const getRequestedCasesService = async (
   );
 };
 
-export const acceptCaseRequestService = async (
+export const submitProposalService = async (
   caseId,
-  lawyerId
+  lawyerId,
+  proposalData
 ) => {
   const caseData =
     await Case.findById(caseId);
@@ -33,39 +34,103 @@ export const acceptCaseRequestService = async (
     );
   }
 
-if (
-  request.status !== "interested"
-) {
+  if (
+    request.status !== "interested"
+  ) {
+    throw new Error(
+      "Show interest first"
+    );
+  }
+
+  if (request.proposal?.proposedAt) {
   throw new Error(
-    "Show interest before accepting"
+    "You have already submitted a proposal for this case"
   );
 }
 
-request.status = "accepted";
+  request.proposal = {
+    professionalFee:
+      proposalData.professionalFee,
 
-  caseData.requestedLawyers.forEach(
-  (r) => {
-    if (
-      r.lawyerId.toString() !==
-      lawyerId.toString()
-    ) {
-      r.status = "declined";
-    }
-  }
-);
+    estimatedDuration:
+      proposalData.estimatedDuration,
 
-  caseData.assignedLawyer = lawyerId;
+    notes: proposalData.notes,
 
-  caseData.status = "assigned";
+    status: "pending",
+
+    proposedAt: new Date(),
+  };
+
+  caseData.status =
+    "proposal_received";
 
   caseData.timeline.push({
-    action: "accepted",
+    action: "proposal_received",
   });
 
   await caseData.save();
 
   return caseData;
 };
+
+// export const acceptCaseRequestService = async (
+//   caseId,
+//   lawyerId
+// ) => {
+//   const caseData =
+//     await Case.findById(caseId);
+
+//   if (!caseData) {
+//     throw new Error("Case not found");
+//   }
+
+//   const request =
+//     caseData.requestedLawyers.find(
+//       (r) =>
+//         r.lawyerId.toString() ===
+//         lawyerId.toString()
+//     );
+
+//   if (!request) {
+//     throw new Error(
+//       "Request not found"
+//     );
+//   }
+
+//   if (
+//     request.status !== "interested"
+//   ) {
+//     throw new Error(
+//       "Show interest before accepting"
+//     );
+//   }
+
+//   request.status = "accepted";
+
+//   caseData.requestedLawyers.forEach(
+//     (r) => {
+//       if (
+//         r.lawyerId.toString() !==
+//         lawyerId.toString()
+//       ) {
+//         r.status = "declined";
+//       }
+//     }
+//   );
+
+//   caseData.assignedLawyer = lawyerId;
+
+//   caseData.status = "assigned";
+
+//   caseData.timeline.push({
+//     action: "accepted",
+//   });
+
+//   await caseData.save();
+
+//   return caseData;
+// };
 
 export const showInterestService = async (
   caseId,
@@ -92,16 +157,16 @@ export const showInterestService = async (
   }
 
   if (request.status === "accepted") {
-  throw new Error(
-    "Case already accepted"
-  );
-}
+    throw new Error(
+      "Case already accepted"
+    );
+  }
 
-if (request.status === "declined") {
-  throw new Error(
-    "Case already declined"
-  );
-}
+  if (request.status === "declined") {
+    throw new Error(
+      "Case already declined"
+    );
+  }
 
   request.status = "interested";
 
@@ -137,7 +202,7 @@ export const declineCaseService = async (
   request.status = "declined";
 
   caseData.timeline.push({
-    action: "rejected",
+    action: "declined",
   });
 
   await caseData.save();

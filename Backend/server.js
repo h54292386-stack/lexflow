@@ -89,7 +89,6 @@ io.on("connection", (socket) => {
 
     socket.join(conversationId);
 
-    console.log(`Joined room: ${conversationId}`);
   });
 
 
@@ -116,7 +115,6 @@ io.on("connection", (socket) => {
       });
 
       if (existing) {
-        console.log("DUPLICATE MESSAGE BLOCKED:", data.messageId);
         return;
       }
       const savedMessage =
@@ -133,10 +131,6 @@ io.on("connection", (socket) => {
 
           text: encryptMessage(data.text),
         });
-      console.log("AFTER SAVE");
-
-      console.log("MESSAGE SAVED:", savedMessage);
-
 
       await Conversation.findByIdAndUpdate(
         data.conversationId,
@@ -380,8 +374,66 @@ io.on("connection", (socket) => {
     }
   );
 
+  socket.on("webrtc-offer", ({ to, offer }) => {
+
+    const receiverSockets = onlineUsers.get(to);
+
+    if (!receiverSockets) return;
+
+    receiverSockets.forEach((socketId) => {
+
+      io.to(socketId).emit(
+        "webrtc-offer",
+        {
+          from: socket.user.userId,
+          offer,
+        }
+      );
+
+    });
 
 
+  });
+
+  socket.on("webrtc-answer",({ to, answer }) => {
+
+      const callerSockets =
+        onlineUsers.get(to);
+
+      if (!callerSockets) return;
+
+      callerSockets.forEach((socketId) => {
+
+        io.to(socketId).emit(
+          "webrtc-answer",
+          {
+            answer,
+          }
+        );
+
+      });
+
+    });
+
+  socket.on( "ice-candidate",({ to, candidate }) => {
+
+      const userSockets =
+        onlineUsers.get(to);
+
+      if (!userSockets) return;
+
+      userSockets.forEach((socketId) => {
+
+        io.to(socketId).emit(
+          "ice-candidate",
+          {
+            candidate,
+          }
+        );
+
+      });
+
+    });
 
   socket.on("disconnect", () => {
     const userId = socket.user?.userId;

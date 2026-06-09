@@ -5,41 +5,85 @@ const paymentSchema = new mongoose.Schema(
     client: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Client",
-      required: true,
+      required: true
     },
 
     lawyer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Lawyer",
+      ref: "Lawyer"
     },
 
-    booking: {
+    case: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Booking",
+      ref: "Case"
+    },
+
+    paymentType: {
+      type: String,
+      enum: [
+        "admin_fee",
+        "professional_fee"
+      ],
+      required: true
     },
 
     amount: {
       type: Number,
-      required: true,
+      required: true
     },
+
+    commissionPercent: {
+      type: Number,
+      default: 10
+    },
+
+    commissionAmount: {
+      type: Number,
+      default: 0
+    },
+
+    lawyerAmount: {
+      type: Number,
+      default: 0
+    },
+
+    lawyerPayoutStatus: {
+      type: String,
+      enum: [
+        "pending",
+        "processing",
+        "paid"
+      ],
+      default: "pending"
+    },
+
+    lawyerPaidAt: Date,
 
     currency: {
       type: String,
-      default: "INR",
+      default: "INR"
     },
 
     razorpayOrderId: {
       type: String,
-      required: true,
+      required: true
     },
 
-    razorpayPaymentId: {
+    razorpayPaymentId: String,
+
+    razorpaySignature: String,
+
+    transactionType: {
       type: String,
+      enum: [
+        "income",
+        "refund",
+        "payout"
+      ],
+      default: "income"
     },
 
-    razorpaySignature: {
-      type: String,
-    },
+    notes: String,
 
     status: {
       type: String,
@@ -47,15 +91,34 @@ const paymentSchema = new mongoose.Schema(
         "created",
         "paid",
         "failed",
-        "refunded",
+        "refunded"
       ],
-      default: "created",
+      default: "created"
     },
+    receipt: {
+      receiptNumber: {
+        type: String,
+      },
+
+      generatedAt: {
+        type: Date,
+      },
+
+      downloaded: {
+        type: Boolean,
+        default: false,
+      },
+
+      downloadCount: {
+        type: Number,
+        default: 0,
+      }
+    },
+
   },
   {
-    timestamps: true,
-  }
-);
+    timestamps: true
+  });
 
 const Payment = mongoose.model(
   "Payment",

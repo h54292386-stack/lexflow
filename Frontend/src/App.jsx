@@ -47,6 +47,8 @@ import LawyerChat from "./pages/lawyer/LawyerChat.jsx";
 import AdminLogin from "./pages/admin/Login.jsx";
 import AdminHome from "./pages/admin/Home.jsx";
 import AdminVerificationLawyers from "./pages/admin/LawyerVerification.jsx";
+import CaseProposals from "./pages/client/CaseProposals.jsx";
+import PaymentDetailsPage from "./pages/client/PaymentDetailsPage.jsx";
 
 function App() {
   return (
@@ -77,6 +79,11 @@ function App() {
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/consultation/:caseId/:lawyerId" element={<ConsultationPaymentPage />} />
         <Route path="/payment-history" element={<PaymentHistoryPage />} />
+        <Route path="/payments/:paymentId" element={<PaymentDetailsPage />} />
+<Route
+  path="/case/:caseId/proposals"
+  element={<CaseProposals />}
+/>
 
         {/* lawyer */}
         <Route path="/lawyer/register" element={<LawyerRegister />} />

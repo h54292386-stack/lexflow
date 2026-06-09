@@ -1,4 +1,4 @@
-import { createCaseService, updateCaseDetailsService, uploadDocumentsService, requestLawyerService, getDraftCaseService,getClientCasesService ,getCaseByIdService, deleteCaseDocumentService} from "./case.service.js";
+import { createCaseService, updateCaseDetailsService, uploadDocumentsService, requestLawyerService, getDraftCaseService,getClientCasesService ,getCaseByIdService, deleteCaseDocumentService, getCaseProposalsService, selectProposalService } from "./case.service.js";
 import { asyncHandler } from "../../../shared/middleware/asyncHandler.js";
 import { sendResponse } from "../../../shared/utils/response.js";
 
@@ -137,3 +137,38 @@ export const deleteCaseDoc = asyncHandler(async (req, res) => {
     updatedCase
   );
 });
+
+export const getCaseProposals =
+  asyncHandler(async (req, res) => {
+    const proposals =
+      await getCaseProposalsService(
+        req.params.caseId,
+        req.user.id
+      );
+
+    return sendResponse(
+      res,
+      200,
+      true,
+      "Proposals fetched",
+      { proposals }
+    );
+  });
+
+  export const selectProposal =
+  asyncHandler(async (req, res) => {
+    const data =
+      await selectProposalService(
+        req.params.caseId,
+        req.params.requestId,
+        req.user.id
+      );
+
+    return sendResponse(
+      res,
+      200,
+      true,
+      "Proposal selected successfully",
+      data
+    );
+  });

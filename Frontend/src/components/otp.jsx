@@ -103,7 +103,7 @@ export default function VerifyOTP() {
 
       login(res.user, res.accessToken);
 
-      localStorage.setItem("role", res.user.role);
+      // sessionStorage.setItem("role", res.user.role);
 
       toast.success("Verified & Logged in");
       if (role === "lawyer") {

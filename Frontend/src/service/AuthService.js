@@ -149,7 +149,26 @@ export const uploadProfileImage = async (formData) => {
   return res.data;
 };
 
+export const getCaseProposals = async (
+  caseId
+) => {
+  const res = await api.get(
+    `/case/${caseId}/proposals`
+  );
 
+  return res.data;
+};
+
+export const selectProposal = async (
+  caseId,
+  requestId
+) => {
+  const res = await api.put(
+    `/case/${caseId}/proposals/${requestId}/select`
+  );
+
+  return res.data;
+};
 
 
 //lawyer
@@ -278,6 +297,19 @@ export const getLawyerConversations = async (userId) => {
   return res.data;
 };
 
+export const submitProposal = async (
+  caseId,
+  proposalData
+) => {
+  const res = await api.post(
+    `/lawyer/case-requests/${caseId}/proposal`,
+    proposalData
+  );
+
+  return res.data;
+};
+
+
 // admin
 
 
@@ -317,13 +349,12 @@ export const rejectLawyer =
 //payment
 
 export const createPaymentOrder =
-  async (amount) => {
+  async (paymentData) => {
 
     const res = await api.post(
       "/payment/create-order",
-      {
-        amount,
-      }
+        paymentData,
+      
     );
 
     return res.data;
@@ -342,6 +373,32 @@ export const verifyPayment = async (paymentData) => {
 export const getPaymentHistory = async () => {
   const { data } = await api.get("/payment/history");
   return data;
+};
+
+export const getPaymentById = async (paymentId) => {
+  const response = await api.get(
+    `/payment/${paymentId}`
+  );
+
+  return response.data;
+};
+
+    export const downloadReceipt =
+  async (paymentId) => {
+
+    const res = await api.patch(
+      `/payment/${paymentId}/download-receipt`
+    );
+
+    return res.data;
+  };
+
+  export const getCasePayments = async (caseId) => {
+  const res = await api.get(
+    `/payment/case/${caseId}`
+  );
+
+  return res.data;
 };
 
 export const getNotifications = () => api.get("/notifications");

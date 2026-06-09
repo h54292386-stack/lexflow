@@ -170,7 +170,7 @@ export const requestLawyerService = async (
       $push: {
         requestedLawyers: {
           lawyerId,
-          status: "pending",
+          status: "new",
         },
         timeline: { action: "requested" },
       },
@@ -231,4 +231,107 @@ export const deleteCaseDocumentService = async (
   }
 
   return updatedCase;
+};
+
+
+export const getCaseProposalsService = async (
+  caseId,
+  clientId
+) => {
+  const caseData =
+    await Case.findOne({
+      _id: caseId,
+      clientId,
+    }).populate(
+      "requestedLawyers.lawyerId",
+      "name profileImage"
+    );
+
+  if (!caseData) {
+    throw new Error("Case not found");
+  }
+
+  if (
+  !mongoose.Types.ObjectId.isValid(
+    caseId
+  )
+) {
+  throw new Error("Invalid case ID");
+}
+
+ return caseData.requestedLawyers
+  .filter((r) => r.proposal?.proposedAt)
+  .map((r) => ({
+    requestId: r._id,
+    lawyerId: r.lawyerId,
+    professionalFee:
+      r.proposal.professionalFee,
+    estimatedDuration:
+      r.proposal.estimatedDuration,
+    notes: r.proposal.notes,
+    status: r.proposal.status,
+    proposedAt:
+      r.proposal.proposedAt,
+  }));
+};
+
+export const selectProposalService = async (
+  caseId,
+  requestId,
+  clientId
+) => {
+  const caseData = await Case.findOne({
+    _id: caseId,
+    clientId,
+  });
+
+  if (!caseData) {
+    throw new Error("Case not found");
+  }
+
+  const selectedRequest =
+    caseData.requestedLawyers.id(requestId);
+
+  if (!selectedRequest) {
+    throw new Error("Proposal not found");
+  }
+
+  if (!selectedRequest.proposal) {
+    throw new Error("Proposal not submitted");
+  }
+
+  // save selected proposal
+  caseData.selectedProposal = {
+    requestId: selectedRequest._id,
+    lawyerId: selectedRequest.lawyerId,
+    professionalFee:
+      selectedRequest.proposal.professionalFee,
+    estimatedDuration:
+      selectedRequest.proposal.estimatedDuration,
+    notes: selectedRequest.proposal.notes,
+    selectedAt: new Date(),
+  };
+
+  // update proposal statuses
+  caseData.requestedLawyers.forEach((r) => {
+    if (
+      r._id.toString() === requestId
+    ) {
+      r.proposal.status = "selected";
+      r.status = "selected";
+    } else if (r.proposal) {
+      r.proposal.status = "rejected";
+    }
+  });
+
+  caseData.status =
+    "proposal_selected";
+
+  caseData.timeline.push({
+    action: "proposal_selected",
+  });
+
+  await caseData.save();
+
+  return caseData;
 };

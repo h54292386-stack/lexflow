@@ -1,8 +1,11 @@
 import toast from "react-hot-toast";
 
-import { useParams, useLocation,useNavigate } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 
-import { createPaymentOrder, verifyPayment } from "../../service/AuthService";
+import {
+  createPaymentOrder,
+  verifyPayment,
+} from "../../service/AuthService.js";
 
 export default function ConsultationPaymentPage() {
   const navigate = useNavigate();
@@ -11,11 +14,21 @@ export default function ConsultationPaymentPage() {
   const location = useLocation();
 
   const { lawyerName, caseName } = location.state || {};
+  const lawyerFee = 500;
+  const adminFee = 499;
+  const totalAmount = lawyerFee + adminFee;
 
   const handlePayment = async () => {
     try {
       // CREATE ORDER
-      const data = await createPaymentOrder(500);
+
+      const data = await createPaymentOrder({
+        lawyerFee,
+        adminFee,
+        totalAmount,
+        lawyerId,
+        caseId,
+      });
 
       const order = data.order;
 
@@ -55,7 +68,7 @@ export default function ConsultationPaymentPage() {
 
                   caseName,
                   lawyerName,
-                  amount: 500,
+                  amount: totalAmount,
                 },
               });
             }, 1500);
@@ -139,15 +152,24 @@ export default function ConsultationPaymentPage() {
         >
           <p className="font-semibold">Consultation Fee</p>
 
-          <p
-            className="
-              text-4xl
-              font-bold
-              mt-2
-            "
-          >
-            ₹500
-          </p>
+          <div className="border rounded-xl p-5 mb-6 bg-gray-50">
+            <div className="flex justify-between">
+              <span>Lawyer Fee</span>
+              <span>₹{lawyerFee}</span>
+            </div>
+
+            <div className="flex justify-between mt-2">
+              <span>Platform Fee</span>
+              <span>₹{adminFee}</span>
+            </div>
+
+            <hr className="my-3" />
+
+            <div className="flex justify-between font-bold text-xl">
+              <span>Total</span>
+              <span>₹{totalAmount}</span>
+            </div>
+          </div>
         </div>
 
         <button

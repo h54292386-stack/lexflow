@@ -1,6 +1,6 @@
 import toast from "react-hot-toast";
 
-import { createPaymentOrder, verifyPayment } from "../../service/AuthService";
+import { createPaymentOrder, verifyPayment } from "../../service/AuthService.js";
 
 export default function PaymentPage() {
   const handlePayment = async () => {

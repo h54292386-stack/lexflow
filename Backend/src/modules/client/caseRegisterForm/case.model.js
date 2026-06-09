@@ -132,9 +132,13 @@ const caseSchema = new mongoose.Schema(
             enum: [
                 "draft",
                 "submitted",
-                "requested",   // 👈 ADD THIS
+                "requested",
+                "proposal_received",
+                "proposal_selected",
+                "pending_admin_fee",
                 "assigned",
                 "in_progress",
+                "completed",
                 "closed"
             ],
             default: "draft"
@@ -154,6 +158,24 @@ const caseSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Lawyer"
         },
+        selectedProposal: {
+            requestId: {
+                type: mongoose.Schema.Types.ObjectId
+            },
+
+            lawyerId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Lawyer"
+            },
+
+            professionalFee: Number,
+
+            estimatedDuration: String,
+
+            notes: String,
+
+            selectedAt: Date
+        },
         requestedLawyers: [
             {
                 lawyerId: {
@@ -166,9 +188,29 @@ const caseSchema = new mongoose.Schema(
                         "new",
                         "interested",
                         "accepted",
-                        "declined"
+                        "declined",
+                        "selected"
                     ],
                     default: "new"
+                },
+                proposal: {
+                    professionalFee: Number,
+
+                    estimatedDuration: String,
+
+                    notes: String,
+                    status: {
+                        type: String,
+                        enum: [
+                            "pending",
+                            "selected",
+                            "rejected"
+                        ],
+                        default: "pending"
+                    },
+
+
+                    proposedAt: Date
                 },
                 requestedAt: {
                     type: Date,
@@ -176,12 +218,62 @@ const caseSchema = new mongoose.Schema(
                 }
             }
         ],
+        adminFee: {
+            amount: {
+                type: Number,
+                default: 499
+            },
 
-        requestStatus: {
-            type: String,
-            enum: ["none", "pending", "accepted", "rejected"],
-            default: "none"
+            paid: {
+                type: Boolean,
+                default: false
+            },
+
+            paymentId: String,
+
+            paidAt: Date
         },
+
+
+
+        professionalPayment: {
+            amount: Number,
+
+            commissionPercent: {
+                type: Number,
+                default: 10
+            },
+
+            commissionAmount: Number,
+
+            lawyerAmount: Number,
+
+            status: {
+                type: String,
+                enum: [
+                    "pending",
+                    "success",
+                    "failed",
+                    "refunded"
+                ],
+                default: "pending"
+            },
+
+            paid: {
+                type: Boolean,
+                default: false
+            },
+
+            paymentId: String,
+
+            paidAt: Date
+        },
+
+        // requestStatus: {
+        //     type: String,
+        //     enum: ["none", "pending", "accepted", "rejected"],
+        //     default: "none"
+        // },
 
         timeline: [
             {
@@ -194,8 +286,13 @@ const caseSchema = new mongoose.Schema(
                         "submitted",
                         "requested",
                         "accepted",
-                        "rejected",
+                        "declined",
+                        "proposal_received",
+                        "proposal_selected",
+                        "admin_fee_paid",
                         "assigned",
+                        "professional_fee_paid",
+                        "payment_completed",
                         "closed"
                     ]
                 }, date: {
@@ -212,6 +309,9 @@ const caseSchema = new mongoose.Schema(
 
 caseSchema.index({ clientId: 1, createdAt: -1 });
 caseSchema.index({ assignedLawyer: 1, status: 1 });
+caseSchema.index({
+    "selectedProposal.lawyerId": 1
+});
 caseSchema.index({
     "requestedLawyers.lawyerId": 1
 });

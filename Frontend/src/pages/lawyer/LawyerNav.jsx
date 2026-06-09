@@ -110,9 +110,9 @@ export default function LawyerNavbar() {
     try {
       await logoutLawyer();
 
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
-      localStorage.removeItem("role");
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("role");
 
       logout?.();
 

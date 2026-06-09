@@ -6,7 +6,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
+  const token = sessionStorage.getItem("accessToken");
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -28,7 +28,7 @@ api.interceptors.response.use(
 
       try {
         const role =
-          localStorage.getItem("role");
+          sessionStorage.getItem("role");
 
         let refreshUrl =
           "/client/refresh-token";
@@ -51,7 +51,7 @@ api.interceptors.response.use(
 
         const newAccessToken = res.data.accessToken;
 
-        localStorage.setItem("accessToken", newAccessToken);
+        sessionStorage.setItem("accessToken", newAccessToken);
 
         originalRequest.headers = {
           ...originalRequest.headers,
@@ -62,13 +62,13 @@ api.interceptors.response.use(
       } catch (err) {
         console.log("Session expired. Please login again.");
 
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("user");
-        localStorage.removeItem("caseDraft");
+        sessionStorage.removeItem("accessToken");
+        sessionStorage.removeItem("user");
+        sessionStorage.removeItem("caseDraft");
         const role =
-          localStorage.getItem("role");
+          sessionStorage.getItem("role");
 
-        localStorage.clear();
+        sessionStorage.clear();
 
         if (role === "admin") {
 

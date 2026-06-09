@@ -12,8 +12,8 @@ const Home = () => {
   const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem("caseDraft");
-    localStorage.removeItem("caseId");
+    sessionStorage.removeItem("caseDraft");
+    sessionStorage.removeItem("caseId");
     logout();
     toast.success("Logged out successfully ");
     navigate("/login");

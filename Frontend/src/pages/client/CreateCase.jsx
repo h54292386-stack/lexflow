@@ -237,7 +237,7 @@ export default function CaseRegistration() {
 
   useEffect(() => {
     const fetchDraft = async () => {
-      const token = localStorage.getItem("accessToken");
+      const token = sessionStorage.getItem("accessToken");
 
       if (!token) return;
 

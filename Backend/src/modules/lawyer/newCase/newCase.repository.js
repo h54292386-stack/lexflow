@@ -19,14 +19,20 @@ export const findRequestedCasesForLawyer = async (
           r.lawyerId.toString() ===
           lawyerId.toString()
       );
-      console.log(request);
+    console.log(request);
 
-   return {
-  ...c.toObject(),
-  lawyerStatus:
-    request?.status === "pending"
-      ? "new"
-      : request?.status || "new",
-};
+    return {
+      ...c.toObject(),
+      lawyerStatus:
+        request?.status === "pending"
+          ? "new"
+          : request?.status || "new",
+
+      proposal: request?.proposal || null,
+
+      isSelected:
+        c.selectedProposal?.lawyerId?.toString() ===
+        lawyerId.toString(),
+    };
   });
 };

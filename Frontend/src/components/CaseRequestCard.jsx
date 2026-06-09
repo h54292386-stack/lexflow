@@ -8,6 +8,7 @@ export default function CaseRequestCard({
   onInterest,
   onAccept,
   onDecline,
+  onProposal,
 }) {
   const navigate = useNavigate();
   const status = caseData.lawyerStatus;
@@ -100,6 +101,22 @@ export default function CaseRequestCard({
 
       {status === "interested" && (
         <div>
+             <button
+            disabled={!!caseData.proposal?.proposedAt}
+            onClick={() => onProposal(caseData._id)}
+            className={
+              caseData.proposal?.proposedAt
+                ? "bg-gray-800 text-white cursor-not-allowed w-full py-2 rounded-lg mb-3"
+          
+                : "bg-black text-white w-full py-2 rounded-lg mb-3"
+          
+            }
+          >
+            {caseData.proposal?.proposedAt
+              ? "Proposal Submitted"
+              : "Submit Proposal"}
+          </button>
+
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
               <button
